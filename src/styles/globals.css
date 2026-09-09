@@ -41,6 +41,17 @@
   user-select: none;
 }
 
+/* Allow text selection & input in form elements */
+input, textarea, select {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+button {
+  cursor: pointer;
+}
+
 html, body, #root {
   width: 100vw;
   height: 100vh;

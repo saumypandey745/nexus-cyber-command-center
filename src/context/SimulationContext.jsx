@@ -47,8 +47,8 @@ export function SimulationProvider({ children }) {
 
   const [currentTheme, setCurrentTheme] = useState('CYBERPUNK'); // MATRIX, CYBERPUNK, AI_LAB, MILITARY, HOLLYWOOD, RETRO_CRT
   const [fxSettings, setFxSettings] = useState({
-    matrixRain: true,
-    crtMode: true,
+    matrixRain: false,
+    crtMode: false,
     glitchMode: false,
     soundEnabled: false,
     volume: 0.5

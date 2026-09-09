@@ -40,17 +40,28 @@ function MainDashboard() {
   return (
     <div 
       data-theme={currentTheme}
-      className={`crt-container ${fxSettings.crtMode ? 'crt-overlay crt-flicker' : ''} ${glitchTrigger ? 'glitch-screen-active' : ''}`} 
+      className={glitchTrigger ? 'glitch-screen-active' : ''}
       style={{
-      width: '100vw',
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      backgroundColor: 'var(--bg-primary)',
-      overflow: 'hidden',
-      position: 'relative'
-    }}>
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'var(--bg-primary)',
+        overflow: 'hidden',
+        position: 'relative'
+      }}
+    >
+      {/* === DECORATIVE OVERLAYS (pointer-events: none, never block clicks) === */}
       <MatrixRainCanvas />
+      {/* CRT Scanline Effect - separate div, never parent of interactive content */}
+      {fxSettings.crtMode && (
+        <div
+          className="crt-overlay crt-flicker"
+          style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9990 }}
+        />
+      )}
+
+      {/* === FUNCTIONAL OVERLAYS (high z-index, conditionally shown) === */}
       <NotificationCenter />
       <DeepAnalysisModal />
       <SystemOverrideModal />
