@@ -91,7 +91,20 @@ export function HackerTyper() {
         }}
       >
         {displayedCode.split('\n').map((line, i) => (
-          <div key={i} style={{ color: line.startsWith('#') || line.startsWith('//') || line.startsWith('[') ? 'rgba(0,255,136,0.6)' : line.includes('ERROR') || line.includes('CRITICAL') ? '#ff003c' : line.includes('SUCCESS') || line.includes('GRANTED') || line.includes('open') ? '#00ff88' : line.match(/^\d/) ? '#ffb300' : '#00e5ff', minHeight:'1.6em' }}>
+          <div key={i} style={{
+            color: line.startsWith('#') || line.startsWith('//') || line.startsWith('[')
+              ? '#00ff88'
+              : line.includes('ERROR') || line.includes('CRITICAL')
+              ? '#ff0044'
+              : line.includes('SUCCESS') || line.includes('GRANTED') || line.includes('open')
+              ? '#00ff66'
+              : line.match(/^\d/)
+              ? '#ffcc00'
+              : '#00f0ff',
+            fontWeight: 700,
+            textShadow: line.includes('GRANTED') || line.includes('CRITICAL') ? '0 0 10px currentColor' : '0 0 4px rgba(0,255,102,0.3)',
+            minHeight: '1.6em',
+          }}>
             {line}
           </div>
         ))}

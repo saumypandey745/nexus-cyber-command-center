@@ -7,48 +7,49 @@
 
 /* ─── MASTER CSS VARIABLES ─── */
 :root {
-  --bg-primary: #00010a;
-  --bg-secondary: #030a18;
-  --bg-tertiary: #071422;
-  --bg-panel: rgba(3, 10, 24, 0.78);
-  --bg-panel-solid: #040c18;
+  --bg-primary: #00040a;
+  --bg-secondary: #020d1c;
+  --bg-tertiary: #05162a;
+  --bg-panel: rgba(2, 10, 25, 0.88);
+  --bg-panel-solid: #030d1d;
 
-  --neon-green: #00ff88;
-  --neon-green-dim: rgba(0, 255, 136, 0.15);
-  --neon-green-glow: rgba(0, 255, 136, 0.55);
+  --neon-green: #00ff66;
+  --neon-green-bold: #00ff88;
+  --neon-green-dim: rgba(0, 255, 102, 0.2);
+  --neon-green-glow: rgba(0, 255, 102, 0.75);
 
-  --electric-cyan: #00e5ff;
-  --electric-cyan-dim: rgba(0, 229, 255, 0.12);
-  --electric-cyan-glow: rgba(0, 229, 255, 0.5);
+  --electric-cyan: #00f0ff;
+  --electric-cyan-dim: rgba(0, 240, 255, 0.18);
+  --electric-cyan-glow: rgba(0, 240, 255, 0.7);
 
-  --plasma-blue: #3d6fff;
-  --plasma-blue-glow: rgba(61, 111, 255, 0.45);
+  --plasma-blue: #3d7fff;
+  --plasma-blue-glow: rgba(61, 127, 255, 0.6);
 
-  --alert-red: #ff003c;
-  --alert-red-dim: rgba(255, 0, 60, 0.15);
-  --alert-red-glow: rgba(255, 0, 60, 0.6);
+  --alert-red: #ff0044;
+  --alert-red-dim: rgba(255, 0, 68, 0.2);
+  --alert-red-glow: rgba(255, 0, 68, 0.8);
 
-  --warning-amber: #ffb300;
-  --cyber-purple: #bf00ff;
-  --cyber-purple-glow: rgba(191, 0, 255, 0.45);
-  --hot-pink: #ff0080;
-  --hot-pink-glow: rgba(255, 0, 128, 0.45);
+  --warning-amber: #ffcc00;
+  --cyber-purple: #d000ff;
+  --cyber-purple-glow: rgba(208, 0, 255, 0.6);
+  --hot-pink: #ff0099;
+  --hot-pink-glow: rgba(255, 0, 153, 0.6);
 
-  --text-primary: #00e5ff;
-  --text-secondary: #4a7a98;
-  --text-muted: #1e3a50;
-  --text-bright: #e0fbff;
+  --text-primary: #00ff66;
+  --text-secondary: #00f0ff;
+  --text-muted: #2f6585;
+  --text-bright: #ffffff;
 
-  --border-cyan: rgba(0, 229, 255, 0.22);
-  --border-green: rgba(0, 255, 136, 0.22);
-  --border-red: rgba(255, 0, 60, 0.4);
+  --border-cyan: rgba(0, 240, 255, 0.35);
+  --border-green: rgba(0, 255, 102, 0.4);
+  --border-red: rgba(255, 0, 68, 0.5);
 
   --font-mono: 'Share Tech Mono', 'Fira Code', monospace;
   --font-header: 'Orbitron', sans-serif;
   --font-display: 'Exo 2', 'Rajdhani', sans-serif;
 
-  --panel-glow: 0 0 0 1px rgba(0, 229, 255, 0.1), 0 4px 30px rgba(0, 229, 255, 0.06), 0 8px 60px rgba(0, 0, 0, 0.6);
-  --panel-hover-glow: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 4px 40px rgba(0, 229, 255, 0.18), 0 8px 80px rgba(0, 0, 0, 0.7);
+  --panel-glow: 0 0 0 1px rgba(0, 255, 102, 0.25), 0 0 25px rgba(0, 255, 102, 0.15), 0 8px 40px rgba(0, 0, 0, 0.85);
+  --panel-hover-glow: 0 0 0 1px rgba(0, 255, 102, 0.55), 0 0 35px rgba(0, 255, 102, 0.3), 0 12px 60px rgba(0, 0, 0, 0.95);
   --panel-glow-intensity: var(--panel-glow);
 }
 

@@ -3,10 +3,10 @@ import { ShieldCheck, Lock, Server, CheckCircle2, Wifi, Eye, AlertTriangle, Zap 
 import { useSimulation } from '../../context/SimulationContext';
 
 const SECURITY_LAYERS = [
-  { id: 'FW', name: 'FIREWALL', status: 'ACTIVE', color: '#00ff88', icon: <ShieldCheck size={12} />, bars: 5 },
-  { id: 'ENC', name: 'ENCRYPTION', status: 'AES-256', color: '#00e5ff', icon: <Lock size={12} />, bars: 5 },
-  { id: 'IDS', name: 'INTRUSION DETECT', status: 'SCANNING', color: '#3d6fff', icon: <Eye size={12} />, bars: 4 },
-  { id: 'VPN', name: 'VPN TUNNEL', status: 'SECURED', color: '#bf00ff', icon: <Wifi size={12} />, bars: 5 },
+  { id: 'FW', name: 'FIREWALL', status: 'ACTIVE', color: '#00ff66', icon: <ShieldCheck size={12} />, bars: 5 },
+  { id: 'ENC', name: 'ENCRYPTION', status: 'AES-256', color: '#00f0ff', icon: <Lock size={12} />, bars: 5 },
+  { id: 'IDS', name: 'INTRUSION DETECT', status: 'SCANNING', color: '#00ffaa', icon: <Eye size={12} />, bars: 4 },
+  { id: 'VPN', name: 'VPN TUNNEL', status: 'SECURED', color: '#d000ff', icon: <Wifi size={12} />, bars: 5 },
 ];
 
 function MiniBarChart({ bars, color, animate }) {

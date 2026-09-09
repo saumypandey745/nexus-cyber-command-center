@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, FileCode, Check, Cpu, Binary, Hash, Fingerprint } from 'lucide-react';
 
 const STAGES = [
-  { id: 'DS', name: 'DATA STRUCTURE ANALYSIS', icon: '◈', color: '#00e5ff', detail: 'Parsing binary structure...' },
-  { id: 'MD', name: 'METADATA PROCESSING', icon: '◉', color: '#3d6fff', detail: 'Extracting EXIF headers...' },
-  { id: 'SC', name: 'SIGNATURE COMPARISON', icon: '◎', color: '#bf00ff', detail: 'Cross-referencing 4.2M signatures...' },
+  { id: 'DS', name: 'DATA STRUCTURE ANALYSIS', icon: '◈', color: '#00f0ff', detail: 'Parsing binary structure...' },
+  { id: 'MD', name: 'METADATA PROCESSING', icon: '◉', color: '#00ff66', detail: 'Extracting EXIF headers...' },
+  { id: 'SC', name: 'SIGNATURE COMPARISON', icon: '◎', color: '#d000ff', detail: 'Cross-referencing 4.2M signatures...' },
   { id: 'PR', name: 'PATTERN RECOGNITION', icon: '◆', color: '#00ff88', detail: 'Neural pattern matching...' },
-  { id: 'AD', name: 'ANOMALY DETECTION', icon: '◇', color: '#ffb300', detail: 'Behavioral analysis running...' },
-  { id: 'FR', name: 'FORENSIC REPORT GEN', icon: '✦', color: '#ff003c', detail: 'Compiling evidence chain...' },
+  { id: 'AD', name: 'ANOMALY DETECTION', icon: '◇', color: '#ffcc00', detail: 'Behavioral analysis running...' },
+  { id: 'FR', name: 'FORENSIC REPORT GEN', icon: '✦', color: '#ff0044', detail: 'Compiling evidence chain...' },
 ];
 
 const RANDOM_HASHES = () => {
