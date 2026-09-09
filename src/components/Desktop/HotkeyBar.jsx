@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Volume2, VolumeX, Maximize, Lock, Hash, Terminal, Globe, AlertTriangle } from 'lucide-react';
+import { useWindowContext } from '../../context/WindowContext';
 
-export function HotkeyBar({ onTriggerTool }) {
+export function HotkeyBar() {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [activeKey, setActiveKey] = useState(null);
+  const { requestOpenWindow } = useWindowContext() || {};
 
   // Play synthetic Web Audio hacker click
   const playHackerBeep = (freq = 800, type = 'sine') => {
@@ -28,37 +30,29 @@ export function HotkeyBar({ onTriggerTool }) {
   };
 
   useEffect(() => {
+    const WINDOW_HOTKEYS = {
+      '1': { id: 'password_cracker', freq: 900, type: 'square' },
+      '2': { id: 'bitcoin_miner', freq: 1100, type: 'sine' },
+      '3': { id: 'hacker_typer', freq: 700, type: 'sawtooth' },
+      '4': { id: 'ip_tracer', freq: 850, type: 'triangle' },
+      '5': { id: 'self_destruct', freq: 400, type: 'sawtooth' },
+    };
+
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      if (e.key === '1') {
-        setActiveKey('1');
-        playHackerBeep(900, 'square');
-        onTriggerTool?.('password_cracker');
-      } else if (e.key === '2') {
-        setActiveKey('2');
-        playHackerBeep(1100, 'sine');
-        onTriggerTool?.('bitcoin_miner');
-      } else if (e.key === '3') {
-        setActiveKey('3');
-        playHackerBeep(700, 'sawtooth');
-        onTriggerTool?.('hacker_typer');
-      } else if (e.key === '4') {
-        setActiveKey('4');
-        playHackerBeep(850, 'triangle');
-        onTriggerTool?.('ip_tracer');
-      } else if (e.key === '5') {
-        setActiveKey('5');
-        playHackerBeep(400, 'sawtooth');
-        onTriggerTool?.('self_destruct');
+      if (WINDOW_HOTKEYS[e.key]) {
+        const { id, freq, type } = WINDOW_HOTKEYS[e.key];
+        setActiveKey(e.key);
+        playHackerBeep(freq, type);
+        requestOpenWindow?.(id);
+        setTimeout(() => setActiveKey(null), 300);
       }
-
-      setTimeout(() => setActiveKey(null), 300);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [audioEnabled, onTriggerTool]);
+  }, [audioEnabled, requestOpenWindow]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -67,14 +61,6 @@ export function HotkeyBar({ onTriggerTool }) {
       document.exitFullscreen().catch(() => {});
     }
   };
-
-  const HOTKEYS = [
-    { key: '1', name: 'PASS CRACKER', id: 'password_cracker', color: '#ff0044', icon: <Lock size={10} /> },
-    { key: '2', name: 'BTC MINER', id: 'bitcoin_miner', color: '#ffcc00', icon: <Hash size={10} /> },
-    { key: '3', name: 'HACKER TYPER', id: 'hacker_typer', color: '#00ff66', icon: <Terminal size={10} /> },
-    { key: '4', name: 'IP TRACER', id: 'ip_tracer', color: '#00f0ff', icon: <Globe size={10} /> },
-    { key: '5', name: 'SELF DESTRUCT', id: 'self_destruct', color: '#ff0044', icon: <AlertTriangle size={10} /> },
-  ];
 
   return (
     <div style={{
@@ -90,10 +76,10 @@ export function HotkeyBar({ onTriggerTool }) {
       zIndex: 100,
       position: 'relative',
     }}>
-      {/* Hotkey buttons list & GeekPrank Hint */}
+      {/* Hotkey hint */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ color: '#00ff66', letterSpacing: '0.5px', fontWeight: 800 }}>
-          ⌨ Press any key to hack | Press 0-9 for popups | Space to close topmost window
+          ⌨ Press any key to hack | Press 1-5 for tools | 0-9 for popups | Space to close
         </span>
       </div>
 

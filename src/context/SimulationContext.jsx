@@ -21,7 +21,7 @@ const INITIAL_LOGS = [
 ];
 
 export function SimulationProvider({ children }) {
-  const [bootCompleted, setBootCompleted] = useState(false);
+  const [bootCompleted, setBootCompleted] = useState(true);
   const [threatLevel, setThreatLevel] = useState('GUARDED'); // LOW, GUARDED, ELEVATED, HIGH, CRITICAL
   const [nodes, setNodes] = useState(INITIAL_NODES);
   const [logs, setLogs] = useState(INITIAL_LOGS);

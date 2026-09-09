@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useWindowContext } from '../../context/WindowContext';
 import { FloatingWindow } from './FloatingWindow';
 import { PasswordCracker } from './PasswordCracker';
 import { BitcoinMiner } from './BitcoinMiner';
@@ -19,23 +20,23 @@ import {
 } from 'lucide-react';
 
 const PASSIVE_DEFS = {
-  '1': { id: 'passive_1', title: '🗙 ACCESS DENIED', icon: <ShieldAlert size={13} />, accentColor: '#ff0044', initialSize: { w: 340, h: 220 }, initialPos: { x: 220, y: 180 }, component: AccessDeniedWindow },
-  '2': { id: 'passive_2', title: '✅ PERMISSION GRANTED', icon: <CheckCircle2 size={13} />, accentColor: '#00ff66', initialSize: { w: 340, h: 220 }, initialPos: { x: 280, y: 200 }, component: PermissionGrantedWindow },
-  '3': { id: 'passive_3', title: '⚠️ SELF DESTRUCT COUNTDOWN', icon: <AlertTriangle size={13} />, accentColor: '#ff0044', initialSize: { w: 320, h: 200 }, initialPos: { x: 340, y: 150 }, component: SelfDestructPassiveWindow },
-  '4': { id: 'passive_4', title: '🔒 TOP SECRET // CLASSIFIED', icon: <Lock size={13} />, accentColor: '#00f0ff', initialSize: { w: 350, h: 220 }, initialPos: { x: 180, y: 240 }, component: TopSecretWindow },
-  '5': { id: 'passive_5', title: '🧠 NEURAL NETWORK TRACER', icon: <Cpu size={13} />, accentColor: '#00ff66', initialSize: { w: 360, h: 240 }, initialPos: { x: 260, y: 160 }, component: NeuralTraceWindow },
-  '6': { id: 'passive_6', title: '⚙ COMPILING EXPLOIT CODE', icon: <Terminal size={13} />, accentColor: '#00f0ff', initialSize: { w: 360, h: 220 }, initialPos: { x: 400, y: 220 }, component: CompilingCodeWindow },
-  '7': { id: 'passive_7', title: '☠ INSTALLING ROOTKIT', icon: <AlertTriangle size={13} />, accentColor: '#ff0044', initialSize: { w: 340, h: 200 }, initialPos: { x: 320, y: 260 }, component: InstallingMalwareWindow },
-  '8': { id: 'passive_8', title: '📥 DOWNLOADING VAULT DATA', icon: <Download size={13} />, accentColor: '#00ff66', initialSize: { w: 350, h: 180 }, initialPos: { x: 240, y: 140 }, component: DownloadingDataWindow },
-  '9': { id: 'passive_9', title: '🛰 SATELLITE KH-11 LINK', icon: <Radio size={13} />, accentColor: '#00f0ff', initialSize: { w: 360, h: 220 }, initialPos: { x: 360, y: 190 }, component: SatelliteConnectionWindow },
-  '0': { id: 'passive_0', title: '🎯 IP NODE TRACKER', icon: <Search size={13} />, accentColor: '#ffcc00', initialSize: { w: 350, h: 200 }, initialPos: { x: 300, y: 250 }, component: LocatingIPWindow },
+  '1': { id: 'passive_1', title: '🗙 ACCESS DENIED', icon: ShieldAlert, accentColor: '#ff0044', initialSize: { w: 340, h: 220 }, initialPos: { x: 220, y: 180 }, component: AccessDeniedWindow, dockIcon: '🗙', desc: 'Access Denied' },
+  '2': { id: 'passive_2', title: '✅ PERMISSION GRANTED', icon: CheckCircle2, accentColor: '#00ff66', initialSize: { w: 340, h: 220 }, initialPos: { x: 280, y: 200 }, component: PermissionGrantedWindow, dockIcon: '✅', desc: 'Granted' },
+  '3': { id: 'passive_3', title: '⚠️ SELF DESTRUCT COUNTDOWN', icon: AlertTriangle, accentColor: '#ff0044', initialSize: { w: 320, h: 200 }, initialPos: { x: 340, y: 150 }, component: SelfDestructPassiveWindow, dockIcon: '⚠️', desc: 'Self Destruct' },
+  '4': { id: 'passive_4', title: '🔒 TOP SECRET // CLASSIFIED', icon: Lock, accentColor: '#00f0ff', initialSize: { w: 350, h: 220 }, initialPos: { x: 180, y: 240 }, component: TopSecretWindow, dockIcon: '🔒', desc: 'Top Secret' },
+  '5': { id: 'passive_5', title: '🧠 NEURAL NETWORK TRACER', icon: Cpu, accentColor: '#00ff66', initialSize: { w: 360, h: 240 }, initialPos: { x: 260, y: 160 }, component: NeuralTraceWindow, dockIcon: '🧠', desc: 'Neural Trace' },
+  '6': { id: 'passive_6', title: '⚙ COMPILING EXPLOIT CODE', icon: Terminal, accentColor: '#00f0ff', initialSize: { w: 360, h: 220 }, initialPos: { x: 400, y: 220 }, component: CompilingCodeWindow, dockIcon: '⚙', desc: 'Compiler' },
+  '7': { id: 'passive_7', title: '☠ INSTALLING ROOTKIT', icon: AlertTriangle, accentColor: '#ff0044', initialSize: { w: 340, h: 200 }, initialPos: { x: 320, y: 260 }, component: InstallingMalwareWindow, dockIcon: '☠', desc: 'Rootkit' },
+  '8': { id: 'passive_8', title: '📥 DOWNLOADING VAULT DATA', icon: Download, accentColor: '#00ff66', initialSize: { w: 350, h: 180 }, initialPos: { x: 240, y: 140 }, component: DownloadingDataWindow, dockIcon: '📥', desc: 'Downloader' },
+  '9': { id: 'passive_9', title: '🛰 SATELLITE KH-11 LINK', icon: Radio, accentColor: '#00f0ff', initialSize: { w: 360, h: 220 }, initialPos: { x: 360, y: 190 }, component: SatelliteConnectionWindow, dockIcon: '🛰', desc: 'Satcom' },
+  '0': { id: 'passive_0', title: '🎯 IP NODE TRACKER', icon: Search, accentColor: '#ffcc00', initialSize: { w: 350, h: 200 }, initialPos: { x: 300, y: 250 }, component: LocatingIPWindow, dockIcon: '🎯', desc: 'IP Locator' },
 };
 
 const WINDOW_DEFS = [
   {
     id: 'password_cracker',
     title: 'PASSWORD CRACKER',
-    icon: <Lock size={13} />,
+    icon: Lock,
     accentColor: '#ff0044',
     initialSize: { w: 360, h: 460 },
     initialPos: { x: 80, y: 80 },
@@ -46,7 +47,7 @@ const WINDOW_DEFS = [
   {
     id: 'bitcoin_miner',
     title: 'CRYPTO MINER',
-    icon: <Hash size={13} />,
+    icon: Hash,
     accentColor: '#ffcc00',
     initialSize: { w: 360, h: 460 },
     initialPos: { x: 460, y: 80 },
@@ -57,7 +58,7 @@ const WINDOW_DEFS = [
   {
     id: 'hacker_typer',
     title: 'NEXUS SHELL // HACKER TYPER',
-    icon: <Terminal size={13} />,
+    icon: Terminal,
     accentColor: '#00ff66',
     initialSize: { w: 520, h: 380 },
     initialPos: { x: 200, y: 150 },
@@ -68,7 +69,7 @@ const WINDOW_DEFS = [
   {
     id: 'ip_tracer',
     title: 'GLOBAL IP TRACER',
-    icon: <Globe size={13} />,
+    icon: Globe,
     accentColor: '#00f0ff',
     initialSize: { w: 420, h: 380 },
     initialPos: { x: 300, y: 200 },
@@ -79,7 +80,7 @@ const WINDOW_DEFS = [
   {
     id: 'surveillance_feed',
     title: 'SURVEILLANCE CCTV GRID',
-    icon: <Video size={13} />,
+    icon: Video,
     accentColor: '#00ff66',
     initialSize: { w: 480, h: 360 },
     initialPos: { x: 380, y: 120 },
@@ -90,7 +91,7 @@ const WINDOW_DEFS = [
   {
     id: 'nuclear_control',
     title: 'NUCLEAR PLANT REACTOR #04',
-    icon: <Flame size={13} />,
+    icon: Flame,
     accentColor: '#ff0044',
     initialSize: { w: 380, h: 360 },
     initialPos: { x: 500, y: 180 },
@@ -101,7 +102,7 @@ const WINDOW_DEFS = [
   {
     id: 'interpol_db',
     title: 'INTERPOL RED NOTICE DATABASE',
-    icon: <Search size={13} />,
+    icon: Search,
     accentColor: '#00f0ff',
     initialSize: { w: 420, h: 360 },
     initialPos: { x: 250, y: 220 },
@@ -112,7 +113,7 @@ const WINDOW_DEFS = [
   {
     id: 'self_destruct',
     title: '⚠ SELF-DESTRUCT SEQUENCE',
-    icon: <AlertTriangle size={13} />,
+    icon: AlertTriangle,
     accentColor: '#ff0044',
     initialSize: { w: 360, h: 420 },
     initialPos: { x: 600, y: 100 },
@@ -128,6 +129,12 @@ export function WindowManager() {
   const [zIndexMap, setZIndexMap] = useState({});
   const [startMenuOpen, setStartMenuOpen] = useState(false);
   const topZRef = useRef(2000);
+  const { registerOpenWindow } = useWindowContext() || {};
+
+  const focusWindow = useCallback((id) => {
+    topZRef.current += 1;
+    setZIndexMap(z => ({ ...z, [id]: topZRef.current }));
+  }, []);
 
   const openWindow = useCallback((def) => {
     setOpenWindows(prev => {
@@ -139,7 +146,7 @@ export function WindowManager() {
       return [...prev, def];
     });
     focusWindow(def.id);
-  }, []);
+  }, [focusWindow]);
 
   const closeWindow = useCallback((id) => {
     setOpenWindows(prev => prev.filter(w => w.id !== id));
@@ -150,15 +157,20 @@ export function WindowManager() {
     setMinimized(m => ({ ...m, [id]: true }));
   }, []);
 
-  const focusWindow = useCallback((id) => {
-    topZRef.current += 1;
-    setZIndexMap(z => ({ ...z, [id]: topZRef.current }));
-  }, []);
-
   const restoreWindow = useCallback((id) => {
     setMinimized(m => ({ ...m, [id]: false }));
     focusWindow(id);
   }, [focusWindow]);
+
+  // Register openWindow-by-id with shared context so other components can open windows
+  useEffect(() => {
+    if (registerOpenWindow) {
+      registerOpenWindow((windowId) => {
+        const def = WINDOW_DEFS.find(d => d.id === windowId);
+        if (def) openWindow(def);
+      });
+    }
+  }, [registerOpenWindow, openWindow]);
 
   // Keyboard Handler for 0-9 passive windows & Space key to close topmost window
   useEffect(() => {
@@ -199,12 +211,13 @@ export function WindowManager() {
       {/* ─── FLOATING WINDOWS LAYER ─── */}
       {openWindows.map(def => {
         const Component = def.component;
+        const IconComponent = def.icon;
         return (
           <FloatingWindow
             key={def.id}
             id={def.id}
             title={def.title}
-            icon={def.icon}
+            icon={React.isValidElement(IconComponent) ? IconComponent : (IconComponent ? React.createElement(IconComponent, { size: 13 }) : null)}
             initialPos={def.initialPos}
             initialSize={def.initialSize}
             accentColor={def.accentColor}

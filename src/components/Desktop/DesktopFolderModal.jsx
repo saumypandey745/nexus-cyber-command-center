@@ -19,7 +19,16 @@ const FOLDER_CONTENTS = {
     { name: 'auth_audit_2026.log', size: '8.4 MB', type: 'LOG', status: 'MONITORED', desc: 'SSH & PAM authentication logs' },
     { name: 'kernel_panic_dump.bin', size: '512.0 KB', type: 'BIN', status: 'COMPACTED', desc: 'Core crash dump analysis' },
     { name: 'threat_events_realtime.stream', size: '∞ KB', type: 'STREAM', status: 'LIVE', desc: 'Realtime SOC event packet captures' },
-  ]
+  ],
+  CLASSIFIED_OPS: [
+    { name: 'op_blackout_v7.enc', size: '256.0 KB', type: 'ENCRYPTED', status: 'CLASSIFIED', desc: 'Operation BLACKOUT mission parameters' },
+    { name: 'agent_roster_omega.db', size: '4.8 MB', type: 'SQLITE', status: 'TOP SECRET', desc: 'Omega clearance agent identity matrix' },
+    { name: 'satellite_vector_map.kml', size: '14.2 MB', type: 'KML', status: 'ACTIVE', desc: 'Global satellite coverage operational zones' },
+    { name: 'cyberweapon_payload_x9.bin', size: '88.4 KB', type: 'BIN', status: 'ARMED', desc: 'Autonomous network disruption payload' },
+    { name: 'communications_intercept.pcap', size: '2.1 GB', type: 'PCAP', status: 'ANALYZED', desc: 'Encrypted SIGINT packet capture 2026-Q3' },
+    { name: 'protocol_17_override.sh', size: '3.2 KB', type: 'SHELL', status: 'STANDBY', desc: 'Emergency override of Protocol 17' },
+    { name: 'biometric_id_spoof.py', size: '9.8 KB', type: 'PYTHON', status: 'READY', desc: 'Neural biometric ID spoofing module' },
+  ],
 };
 
 export function DesktopFolderModal({ folderKey, folderName, onClose, onExecuteFile }) {

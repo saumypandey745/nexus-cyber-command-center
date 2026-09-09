@@ -1,5 +1,6 @@
 import React from 'react';
 import { SimulationProvider, useSimulation } from './context/SimulationContext';
+import { WindowProvider } from './context/WindowContext';
 import { BootSequence } from './components/BootSequence/BootSequence';
 import { SystemHeader } from './components/Header/SystemHeader';
 import { CommandTerminal } from './components/Terminal/CommandTerminal';
@@ -59,16 +60,10 @@ function MainDashboard() {
       <BackgroundWatermark />
 
       {/* === DESKTOP ICONS GRID (FOLDERS & TOOL LAUNCHERS) === */}
-      <DesktopIconsGrid onOpenWindow={(windowId) => {
-        const btn = document.querySelector(`[title*="${windowId}"]`);
-        if (btn) btn.click();
-      }} />
+      <DesktopIconsGrid />
 
       {/* === GEEKPRANK QUICK HOTKEYS BAR === */}
-      <HotkeyBar onTriggerTool={(toolId) => {
-        const btn = document.querySelector(`[title*="${toolId}"]`);
-        if (btn) btn.click();
-      }} />
+      <HotkeyBar />
 
       {/* === DECORATIVE OVERLAYS (pointer-events: none, never block clicks) === */}
       <MatrixRainCanvas />
@@ -142,8 +137,10 @@ function MainDashboard() {
 
 export default function App() {
   return (
-    <SimulationProvider>
-      <MainDashboard />
-    </SimulationProvider>
+    <WindowProvider>
+      <SimulationProvider>
+        <MainDashboard />
+      </SimulationProvider>
+    </WindowProvider>
   );
 }

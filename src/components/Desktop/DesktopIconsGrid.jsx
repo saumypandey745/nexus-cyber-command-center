@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { DesktopFolderModal } from './DesktopFolderModal';
+import { useWindowContext } from '../../context/WindowContext';
 import {
-  Folder, Lock, Hash, Terminal, Globe, AlertTriangle, Video, ShieldCheck, FileCode, Cpu
+  Folder, Lock, Hash, Terminal, Globe, AlertTriangle, Video, FileCode, Cpu, Shield, Wifi, Radio
 } from 'lucide-react';
 
 const DESKTOP_ITEMS = [
@@ -10,7 +11,8 @@ const DESKTOP_ITEMS = [
     type: 'folder',
     folderKey: 'EXPLOITS_VAULT',
     title: 'EXPLOITS_VAULT',
-    icon: <Folder size={24} color="#00ff66" />,
+    icon: '📁',
+    iconColor: '#00ff66',
     badge: '5 FILES',
     color: '#00ff66',
   },
@@ -19,7 +21,8 @@ const DESKTOP_ITEMS = [
     type: 'folder',
     folderKey: 'TARGET_DATABASE',
     title: 'TARGET_DATABASE',
-    icon: <Folder size={24} color="#00f0ff" />,
+    icon: '📁',
+    iconColor: '#00f0ff',
     badge: '4 FILES',
     color: '#00f0ff',
   },
@@ -28,16 +31,28 @@ const DESKTOP_ITEMS = [
     type: 'folder',
     folderKey: 'SYSTEM_LOGS',
     title: 'SYSTEM_LOGS',
-    icon: <Folder size={24} color="#ffcc00" />,
+    icon: '📁',
+    iconColor: '#ffcc00',
     badge: '3 LOGS',
     color: '#ffcc00',
+  },
+  {
+    id: 'folder_classified',
+    type: 'folder',
+    folderKey: 'CLASSIFIED_OPS',
+    title: 'CLASSIFIED_OPS',
+    icon: '📁',
+    iconColor: '#ff0044',
+    badge: '7 FILES',
+    color: '#ff0044',
   },
   {
     id: 'app_password',
     type: 'app',
     windowId: 'password_cracker',
     title: 'PASS_CRACKER.exe',
-    icon: <Lock size={22} color="#ff0044" />,
+    icon: '🔓',
+    iconColor: '#ff0044',
     badge: 'TOOL',
     color: '#ff0044',
   },
@@ -46,7 +61,8 @@ const DESKTOP_ITEMS = [
     type: 'app',
     windowId: 'bitcoin_miner',
     title: 'BTC_MINER.exe',
-    icon: <Hash size={22} color="#ffcc00" />,
+    icon: '₿',
+    iconColor: '#ffcc00',
     badge: 'CRYPTO',
     color: '#ffcc00',
   },
@@ -54,8 +70,9 @@ const DESKTOP_ITEMS = [
     id: 'app_typer',
     type: 'app',
     windowId: 'hacker_typer',
-    title: 'HACKER_TYPER.sh',
-    icon: <Terminal size={22} color="#00ff66" />,
+    title: 'NEXUS_SHELL.sh',
+    icon: '>_',
+    iconColor: '#00ff66',
     badge: 'SHELL',
     color: '#00ff66',
   },
@@ -64,7 +81,8 @@ const DESKTOP_ITEMS = [
     type: 'app',
     windowId: 'ip_tracer',
     title: 'IP_TRACER.bin',
-    icon: <Globe size={22} color="#00f0ff" />,
+    icon: '🌐',
+    iconColor: '#00f0ff',
     badge: 'NETWORK',
     color: '#00f0ff',
   },
@@ -73,7 +91,8 @@ const DESKTOP_ITEMS = [
     type: 'app',
     windowId: 'surveillance_feed',
     title: 'CCTV_GRID.live',
-    icon: <Video size={22} color="#00ff66" />,
+    icon: '📹',
+    iconColor: '#00ff66',
     badge: 'CAMERA',
     color: '#00ff66',
   },
@@ -82,7 +101,8 @@ const DESKTOP_ITEMS = [
     type: 'app',
     windowId: 'nuclear_control',
     title: 'REACTOR_04.sys',
-    icon: <Cpu size={22} color="#ff0044" />,
+    icon: '⚛',
+    iconColor: '#ff0044',
     badge: 'NUCLEAR',
     color: '#ff0044',
   },
@@ -91,7 +111,8 @@ const DESKTOP_ITEMS = [
     type: 'app',
     windowId: 'interpol_db',
     title: 'INTERPOL_RED.db',
-    icon: <FileCode size={22} color="#00f0ff" />,
+    icon: '🎯',
+    iconColor: '#00f0ff',
     badge: 'WANTED',
     color: '#00f0ff',
   },
@@ -100,15 +121,17 @@ const DESKTOP_ITEMS = [
     type: 'app',
     windowId: 'self_destruct',
     title: 'SELF_DESTRUCT.exe',
-    icon: <AlertTriangle size={22} color="#ff0044" />,
+    icon: '💣',
+    iconColor: '#ff0044',
     badge: 'DANGER',
     color: '#ff0044',
   },
 ];
 
-export function DesktopIconsGrid({ onOpenWindow }) {
+export function DesktopIconsGrid() {
   const [selectedId, setSelectedId] = useState(null);
   const [activeFolder, setActiveFolder] = useState(null);
+  const { requestOpenWindow } = useWindowContext() || {};
 
   const handleClick = (item) => {
     setSelectedId(item.id);
@@ -117,74 +140,87 @@ export function DesktopIconsGrid({ onOpenWindow }) {
   const handleDoubleClick = (item) => {
     if (item.type === 'folder') {
       setActiveFolder(item);
-    } else if (item.type === 'app' && onOpenWindow) {
-      onOpenWindow(item.windowId);
+    } else if (item.type === 'app' && requestOpenWindow) {
+      requestOpenWindow(item.windowId);
     }
   };
 
   return (
     <>
-      {/* Desktop Grid Layout */}
+      {/* Desktop Icon Grid — right side column, like geekprank */}
       <div style={{
         position: 'fixed',
-        top: '48px', // Below header
-        right: '16px',
+        top: '52px',
+        right: '8px',
+        bottom: '72px',
         display: 'flex',
         flexDirection: 'column',
         flexWrap: 'wrap',
-        gap: '14px',
+        alignContent: 'flex-end',
+        gap: '4px',
+        padding: '6px 4px',
         zIndex: 50,
         pointerEvents: 'auto',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        scrollbarWidth: 'none',
+        width: '88px',
       }}>
         {DESKTOP_ITEMS.map((item) => {
           const isSelected = selectedId === item.id;
+          const isFolder = item.type === 'folder';
           return (
             <div
               key={item.id}
               onClick={() => handleClick(item)}
               onDoubleClick={() => handleDoubleClick(item)}
               style={{
-                width: '100px',
-                padding: '8px 6px',
-                borderRadius: '4px',
+                width: '76px',
+                padding: '7px 4px 5px',
+                borderRadius: '6px',
                 background: isSelected
-                  ? `linear-gradient(135deg, ${item.color}25 0%, rgba(0,0,0,0.6) 100%)`
-                  : 'rgba(0,4,12,0.4)',
-                border: `1px solid ${isSelected ? item.color : 'rgba(0,240,255,0.12)'}`,
-                backdropFilter: 'blur(10px)',
+                  ? `${item.color}22`
+                  : 'rgba(0,4,12,0.45)',
+                border: `1px solid ${isSelected ? item.color : 'rgba(0,255,102,0.1)'}`,
+                backdropFilter: 'blur(12px)',
                 boxShadow: isSelected
-                  ? `0 0 15px ${item.color}40, inset 0 0 10px ${item.color}15`
-                  : '0 2px 10px rgba(0,0,0,0.5)',
+                  ? `0 0 14px ${item.color}50, inset 0 0 8px ${item.color}12`
+                  : '0 2px 8px rgba(0,0,0,0.4)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '5px',
+                gap: '4px',
                 cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'all 0.2s ease',
                 userSelect: 'none',
+                flexShrink: 0,
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
                   e.currentTarget.style.borderColor = item.color;
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = `0 0 12px ${item.color}30`;
+                  e.currentTarget.style.transform = 'scale(1.06)';
+                  e.currentTarget.style.boxShadow = `0 0 14px ${item.color}40`;
+                  e.currentTarget.style.background = `${item.color}18`;
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.borderColor = 'rgba(0,240,255,0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(0,255,102,0.1)';
                   e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.5)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+                  e.currentTarget.style.background = 'rgba(0,4,12,0.45)';
                 }
               }}
             >
-              {/* Icon Container with glowing drop-shadow */}
+              {/* Icon */}
               <div style={{
-                filter: `drop-shadow(0 0 8px ${item.color})`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '28px',
+                fontSize: isFolder ? '26px' : '20px',
+                lineHeight: 1,
+                filter: `drop-shadow(0 0 6px ${item.color})`,
+                color: item.iconColor,
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                textAlign: 'center',
               }}>
                 {item.icon}
               </div>
@@ -192,25 +228,26 @@ export function DesktopIconsGrid({ onOpenWindow }) {
               {/* Title */}
               <span style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '9px',
+                fontSize: '7.5px',
                 fontWeight: 700,
-                letterSpacing: '0.5px',
-                color: isSelected ? '#ffffff' : item.color,
-                textShadow: isSelected ? `0 0 8px ${item.color}` : 'none',
+                letterSpacing: '0.3px',
+                color: isSelected ? '#fff' : item.color,
+                textShadow: isSelected ? `0 0 6px ${item.color}` : `0 0 4px ${item.color}80`,
                 textAlign: 'center',
-                wordBreak: 'break-word',
-                lineHeight: 1.2,
+                wordBreak: 'break-all',
+                lineHeight: 1.15,
+                maxWidth: '68px',
               }}>
                 {item.title}
               </span>
 
-              {/* Small Badge */}
+              {/* Badge */}
               <span style={{
-                fontSize: '7px',
+                fontSize: '6px',
                 fontWeight: 800,
                 color: item.color,
                 background: `${item.color}15`,
-                border: `1px solid ${item.color}40`,
+                border: `1px solid ${item.color}35`,
                 padding: '1px 4px',
                 borderRadius: '2px',
                 letterSpacing: '0.5px',
