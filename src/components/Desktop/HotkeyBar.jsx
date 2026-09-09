@@ -90,51 +90,11 @@ export function HotkeyBar({ onTriggerTool }) {
       zIndex: 100,
       position: 'relative',
     }}>
-      {/* Hotkey buttons list */}
+      {/* Hotkey buttons list & GeekPrank Hint */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ color: 'var(--text-muted)', letterSpacing: '1px', fontWeight: 800 }}>
-          QUICK HOTKEYS:
+        <span style={{ color: '#00ff66', letterSpacing: '0.5px', fontWeight: 800 }}>
+          ⌨ Press any key to hack | Press 0-9 for popups | Space to close topmost window
         </span>
-        {HOTKEYS.map((hk) => {
-          const isActive = activeKey === hk.key;
-          return (
-            <button
-              key={hk.key}
-              onClick={() => {
-                playHackerBeep(800, 'square');
-                onTriggerTool?.(hk.id);
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '2px 6px',
-                background: isActive ? `${hk.color}40` : 'rgba(0,255,102,0.05)',
-                border: `1px solid ${isActive ? hk.color : 'rgba(0,255,102,0.2)'}`,
-                borderRadius: '2px',
-                color: isActive ? '#ffffff' : hk.color,
-                cursor: 'pointer',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '9px',
-                fontWeight: 700,
-                boxShadow: isActive ? `0 0 10px ${hk.color}` : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span style={{
-                background: hk.color,
-                color: '#000',
-                fontWeight: 900,
-                padding: '0 3px',
-                borderRadius: '1px',
-                fontSize: '8px',
-              }}>
-                {hk.key}
-              </span>
-              <span>{hk.name}</span>
-            </button>
-          );
-        })}
       </div>
 
       {/* Audio & Fullscreen Quick Toggles */}

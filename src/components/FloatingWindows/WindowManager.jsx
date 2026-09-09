@@ -5,10 +5,31 @@ import { BitcoinMiner } from './BitcoinMiner';
 import { HackerTyper } from './HackerTyper';
 import { IPTracer } from './IPTracer';
 import { SelfDestruct } from './SelfDestruct';
+import { SurveillanceFeed } from './SurveillanceFeed';
+import { NuclearControl } from './NuclearControl';
+import { InterpolDatabase } from './InterpolDatabase';
+import {
+  AccessDeniedWindow, PermissionGrantedWindow, SelfDestructPassiveWindow,
+  TopSecretWindow, NeuralTraceWindow, CompilingCodeWindow, InstallingMalwareWindow,
+  DownloadingDataWindow, SatelliteConnectionWindow, LocatingIPWindow
+} from './PassiveWindows';
 import {
   Lock, Bitcoin, Terminal, Globe, AlertTriangle, Monitor,
-  Plus, Minimize2, Hash, Wifi,
+  Plus, Minimize2, Hash, Wifi, Video, Flame, Search, ShieldAlert, CheckCircle2, Cpu, Download, Radio
 } from 'lucide-react';
+
+const PASSIVE_DEFS = {
+  '1': { id: 'passive_1', title: '🗙 ACCESS DENIED', icon: <ShieldAlert size={13} />, accentColor: '#ff0044', initialSize: { w: 340, h: 220 }, initialPos: { x: 220, y: 180 }, component: AccessDeniedWindow },
+  '2': { id: 'passive_2', title: '✅ PERMISSION GRANTED', icon: <CheckCircle2 size={13} />, accentColor: '#00ff66', initialSize: { w: 340, h: 220 }, initialPos: { x: 280, y: 200 }, component: PermissionGrantedWindow },
+  '3': { id: 'passive_3', title: '⚠️ SELF DESTRUCT COUNTDOWN', icon: <AlertTriangle size={13} />, accentColor: '#ff0044', initialSize: { w: 320, h: 200 }, initialPos: { x: 340, y: 150 }, component: SelfDestructPassiveWindow },
+  '4': { id: 'passive_4', title: '🔒 TOP SECRET // CLASSIFIED', icon: <Lock size={13} />, accentColor: '#00f0ff', initialSize: { w: 350, h: 220 }, initialPos: { x: 180, y: 240 }, component: TopSecretWindow },
+  '5': { id: 'passive_5', title: '🧠 NEURAL NETWORK TRACER', icon: <Cpu size={13} />, accentColor: '#00ff66', initialSize: { w: 360, h: 240 }, initialPos: { x: 260, y: 160 }, component: NeuralTraceWindow },
+  '6': { id: 'passive_6', title: '⚙ COMPILING EXPLOIT CODE', icon: <Terminal size={13} />, accentColor: '#00f0ff', initialSize: { w: 360, h: 220 }, initialPos: { x: 400, y: 220 }, component: CompilingCodeWindow },
+  '7': { id: 'passive_7', title: '☠ INSTALLING ROOTKIT', icon: <AlertTriangle size={13} />, accentColor: '#ff0044', initialSize: { w: 340, h: 200 }, initialPos: { x: 320, y: 260 }, component: InstallingMalwareWindow },
+  '8': { id: 'passive_8', title: '📥 DOWNLOADING VAULT DATA', icon: <Download size={13} />, accentColor: '#00ff66', initialSize: { w: 350, h: 180 }, initialPos: { x: 240, y: 140 }, component: DownloadingDataWindow },
+  '9': { id: 'passive_9', title: '🛰 SATELLITE KH-11 LINK', icon: <Radio size={13} />, accentColor: '#00f0ff', initialSize: { w: 360, h: 220 }, initialPos: { x: 360, y: 190 }, component: SatelliteConnectionWindow },
+  '0': { id: 'passive_0', title: '🎯 IP NODE TRACKER', icon: <Search size={13} />, accentColor: '#ffcc00', initialSize: { w: 350, h: 200 }, initialPos: { x: 300, y: 250 }, component: LocatingIPWindow },
+};
 
 const WINDOW_DEFS = [
   {
@@ -54,6 +75,39 @@ const WINDOW_DEFS = [
     component: IPTracer,
     dockIcon: '🌐',
     desc: 'IP Tracker',
+  },
+  {
+    id: 'surveillance_feed',
+    title: 'SURVEILLANCE CCTV GRID',
+    icon: <Video size={13} />,
+    accentColor: '#00ff66',
+    initialSize: { w: 480, h: 360 },
+    initialPos: { x: 380, y: 120 },
+    component: SurveillanceFeed,
+    dockIcon: '📹',
+    desc: 'CCTV Camera',
+  },
+  {
+    id: 'nuclear_control',
+    title: 'NUCLEAR PLANT REACTOR #04',
+    icon: <Flame size={13} />,
+    accentColor: '#ff0044',
+    initialSize: { w: 380, h: 360 },
+    initialPos: { x: 500, y: 180 },
+    component: NuclearControl,
+    dockIcon: '⚛',
+    desc: 'Reactor Core',
+  },
+  {
+    id: 'interpol_db',
+    title: 'INTERPOL RED NOTICE DATABASE',
+    icon: <Search size={13} />,
+    accentColor: '#00f0ff',
+    initialSize: { w: 420, h: 360 },
+    initialPos: { x: 250, y: 220 },
+    component: InterpolDatabase,
+    dockIcon: '🎯',
+    desc: 'Interpol DB',
   },
   {
     id: 'self_destruct',
@@ -105,6 +159,40 @@ export function WindowManager() {
     setMinimized(m => ({ ...m, [id]: false }));
     focusWindow(id);
   }, [focusWindow]);
+
+  // Keyboard Handler for 0-9 passive windows & Space key to close topmost window
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || document.activeElement?.isContentEditable) return;
+
+      if (PASSIVE_DEFS[e.key]) {
+        openWindow(PASSIVE_DEFS[e.key]);
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        // Close topmost window (highest zIndex)
+        setOpenWindows(prev => {
+          if (prev.length === 0) return prev;
+          let highestZ = -1;
+          let highestId = null;
+          prev.forEach(w => {
+            const z = zIndexMap[w.id] || 0;
+            if (z > highestZ) {
+              highestZ = z;
+              highestId = w.id;
+            }
+          });
+          if (highestId) {
+            return prev.filter(w => w.id !== highestId);
+          }
+          return prev.slice(0, -1);
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [openWindow, zIndexMap]);
 
   return (
     <>

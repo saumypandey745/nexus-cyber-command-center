@@ -25,12 +25,32 @@ export function HackerTyper() {
 
   const fullCode = CODE_SNIPPETS[snippetIndex % CODE_SNIPPETS.length];
 
+  const playKeyClick = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const freqs = [600, 750, 900, 1050, 1200];
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freqs[Math.floor(Math.random() * freqs.length)], ctx.currentTime);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.04);
+    } catch (e) {}
+  };
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       setIsActive(true);
       setKeyCount(prev => prev + 1);
       setGlitch(true);
+      playKeyClick();
       setTimeout(() => setGlitch(false), 80);
 
       setCharIndex(prev => {
