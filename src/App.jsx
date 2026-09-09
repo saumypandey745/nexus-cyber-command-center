@@ -23,6 +23,9 @@ import { DeepAnalysisModal } from './components/Modes/DeepAnalysisModal';
 import { SystemOverrideModal } from './components/Modes/SystemOverrideModal';
 import { MinimalModeView } from './components/Modes/MinimalModeView';
 import { WindowManager } from './components/FloatingWindows/WindowManager';
+import { BackgroundWatermark } from './components/Desktop/BackgroundWatermark';
+import { DesktopIconsGrid } from './components/Desktop/DesktopIconsGrid';
+import { HotkeyBar } from './components/Desktop/HotkeyBar';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 import './styles/globals.css';
@@ -52,6 +55,21 @@ function MainDashboard() {
         position: 'relative'
       }}
     >
+      {/* === BACKGROUND WATERMARK LOGO & TITLE === */}
+      <BackgroundWatermark />
+
+      {/* === DESKTOP ICONS GRID (FOLDERS & TOOL LAUNCHERS) === */}
+      <DesktopIconsGrid onOpenWindow={(windowId) => {
+        const btn = document.querySelector(`[title*="${windowId}"]`);
+        if (btn) btn.click();
+      }} />
+
+      {/* === GEEKPRANK QUICK HOTKEYS BAR === */}
+      <HotkeyBar onTriggerTool={(toolId) => {
+        const btn = document.querySelector(`[title*="${toolId}"]`);
+        if (btn) btn.click();
+      }} />
+
       {/* === DECORATIVE OVERLAYS (pointer-events: none, never block clicks) === */}
       <MatrixRainCanvas />
       {/* CRT Scanline Effect - separate div, never parent of interactive content */}
