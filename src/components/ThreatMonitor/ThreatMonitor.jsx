@@ -40,21 +40,36 @@ export function ThreatMonitor() {
   const currentIdx = THREAT_LEVELS.indexOf(threatLevel);
 
   return (
-    <div className="cyber-panel" style={{ padding: '10px 12px', gap: '8px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-header)', fontSize: '11px', fontWeight: 700, color: currentInfo.color, transition: 'color 0.3s ease' }}>
+    <div className="cyber-panel" style={{
+      padding: '0',
+      gap: '0',
+      animation: threatLevel === 'CRITICAL' ? 'warningStrobe 0.8s ease-in-out infinite' : 'none',
+    }}>
+      <div className="cyber-panel-corner-tl" style={{ borderColor: currentInfo.color }} />
+      <div className="cyber-panel-corner-tr" style={{ borderColor: currentInfo.color }} />
+      <div className="cyber-panel-corner-bl" style={{ borderColor: currentInfo.color }} />
+      <div className="cyber-panel-corner-br" style={{ borderColor: currentInfo.color }} />
+
+      {/* Threat-colored header */}
+      <div className="cyber-panel-header" style={{
+        background: `linear-gradient(90deg, ${currentInfo.color}18 0%, transparent 100%)`,
+        borderBottomColor: `${currentInfo.color}30`,
+        transition: 'all 0.4s ease',
+      }}>
+        <div className="panel-title" style={{ color: currentInfo.color, transition: 'color 0.3s ease' }}>
           {threatLevel === 'CRITICAL' ? (
-            <ShieldAlert size={14} color={currentInfo.color} style={{ animation: 'pulse-red 0.5s infinite' }} />
+            <ShieldAlert size={12} color={currentInfo.color} style={{ filter: `drop-shadow(0 0 6px ${currentInfo.color})`, animation: 'pulseRed 0.8s ease-in-out infinite' }} />
           ) : (
-            <AlertTriangle size={14} color={currentInfo.color} />
+            <AlertTriangle size={12} color={currentInfo.color} style={{ filter: `drop-shadow(0 0 5px ${currentInfo.color})` }} />
           )}
-          <span>THREAT INTELLIGENCE</span>
+          <span style={{ textShadow: `0 0 10px ${currentInfo.color}50` }}>THREAT INTEL</span>
         </div>
         <span className={`cyber-badge ${currentInfo.badge}`} style={{ transition: 'all 0.3s ease' }}>
           {currentInfo.desc}
         </span>
       </div>
+
+      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 2, position: 'relative' }}>
 
       {/* Threat Level Selector Bars */}
       <div style={{ display: 'flex', gap: '3px', width: '100%', height: '22px' }}>
@@ -89,22 +104,24 @@ export function ThreatMonitor() {
         })}
       </div>
 
-      {/* Critical Alert Trigger Button */}
-      <button
-        className={`cyber-btn ${threatLevel === 'CRITICAL' ? 'cyber-btn-red' : ''}`}
-        onClick={handleCriticalAlert}
-        style={{
-          width: '100%',
-          justifyContent: 'center',
-          padding: '5px 0',
-          fontSize: '10px',
-          gap: '5px',
-          animation: threatLevel === 'CRITICAL' ? 'pulse-red 1s infinite' : 'none'
-        }}
-      >
-        <Zap size={11} />
-        {threatLevel === 'CRITICAL' ? '!! OVERRIDE ACTIVE !!' : 'TRIGGER CRITICAL OVERRIDE'}
-      </button>
+        {/* Critical Alert Trigger Button */}
+        <button
+          className={`cyber-btn ${threatLevel === 'CRITICAL' ? 'cyber-btn-red' : ''}`}
+          onClick={handleCriticalAlert}
+          style={{
+            width: '100%',
+            justifyContent: 'center',
+            padding: '5px 0',
+            fontSize: '10px',
+            gap: '6px',
+            animation: threatLevel === 'CRITICAL' ? 'pulseRed 1s infinite' : 'none',
+            boxShadow: threatLevel === 'CRITICAL' ? '0 0 20px var(--alert-red-glow), inset 0 0 10px rgba(255,0,60,0.08)' : 'none',
+          }}
+        >
+          <Zap size={11} />
+          {threatLevel === 'CRITICAL' ? '!! OVERRIDE ACTIVE !!' : 'TRIGGER CRITICAL OVERRIDE'}
+        </button>
+      </div>
     </div>
   );
 }

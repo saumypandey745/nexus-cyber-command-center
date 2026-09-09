@@ -22,6 +22,7 @@ import { MatrixRainCanvas } from './components/Overlays/MatrixRainCanvas';
 import { DeepAnalysisModal } from './components/Modes/DeepAnalysisModal';
 import { SystemOverrideModal } from './components/Modes/SystemOverrideModal';
 import { MinimalModeView } from './components/Modes/MinimalModeView';
+import { WindowManager } from './components/FloatingWindows/WindowManager';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 import './styles/globals.css';
@@ -66,6 +67,9 @@ function MainDashboard() {
       <DeepAnalysisModal />
       <SystemOverrideModal />
       <MinimalModeView />
+
+      {/* === FLOATING WINDOW SYSTEM (NEXUS OS) === */}
+      <WindowManager />
 
       {/* 1. Header Bar */}
       <SystemHeader />
