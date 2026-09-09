@@ -1,0 +1,193 @@
+/* Theme Presets for NEXUS Cyber Command Center */
+
+/* 1. MATRIX TERMINAL THEME */
+[data-theme='MATRIX'] {
+  --bg-primary: #020804;
+  --bg-secondary: #051408;
+  --bg-tertiary: #0a2110;
+  --bg-panel: rgba(5, 20, 10, 0.88);
+  --bg-panel-solid: #051408;
+
+  --neon-green: #00ff66;
+  --neon-green-dim: rgba(0, 255, 102, 0.2);
+  --neon-green-glow: rgba(0, 255, 102, 0.4);
+
+  --electric-cyan: #00ffaa;
+  --electric-cyan-dim: rgba(0, 255, 170, 0.15);
+  --electric-cyan-glow: rgba(0, 255, 170, 0.4);
+
+  --alert-red: #ff2a4b;
+  --alert-red-dim: rgba(255, 42, 75, 0.2);
+  --alert-red-glow: rgba(255, 42, 75, 0.5);
+
+  --warning-amber: #ccff00;
+  --cyber-purple: #00cc66;
+
+  --text-primary: #00ff66;
+  --text-secondary: #52c47a;
+  --text-muted: #1e5e34;
+
+  --border-cyan: rgba(0, 255, 102, 0.35);
+  --border-green: rgba(0, 255, 102, 0.35);
+  --border-red: rgba(255, 42, 75, 0.4);
+}
+
+/* 2. CYBERPUNK NEON THEME (Default) */
+[data-theme='CYBERPUNK'] {
+  --bg-primary: #020509;
+  --bg-secondary: #060d17;
+  --bg-tertiary: #0b1526;
+  --bg-panel: rgba(6, 15, 28, 0.88);
+  --bg-panel-solid: #060f1c;
+
+  --neon-green: #00ff66;
+  --neon-green-dim: rgba(0, 255, 102, 0.2);
+  --neon-green-glow: rgba(0, 255, 102, 0.4);
+
+  --electric-cyan: #00f0ff;
+  --electric-cyan-dim: rgba(0, 240, 255, 0.15);
+  --electric-cyan-glow: rgba(0, 240, 255, 0.4);
+
+  --alert-red: #ff0055;
+  --alert-red-dim: rgba(255, 0, 85, 0.2);
+  --alert-red-glow: rgba(255, 0, 85, 0.5);
+
+  --warning-amber: #ffb700;
+  --cyber-purple: #ff007f;
+
+  --text-primary: #00f0ff;
+  --text-secondary: #7094b8;
+  --text-muted: #3a536e;
+
+  --border-cyan: rgba(0, 240, 255, 0.3);
+  --border-green: rgba(0, 255, 102, 0.3);
+  --border-red: rgba(255, 0, 85, 0.4);
+}
+
+/* 3. ADVANCED AI LAB THEME */
+[data-theme='AI_LAB'] {
+  --bg-primary: #030712;
+  --bg-secondary: #0b1329;
+  --bg-tertiary: #131e3a;
+  --bg-panel: rgba(11, 19, 41, 0.88);
+  --bg-panel-solid: #0b1329;
+
+  --neon-green: #38bdf8;
+  --neon-green-dim: rgba(56, 189, 248, 0.2);
+  --neon-green-glow: rgba(56, 189, 248, 0.4);
+
+  --electric-cyan: #818cf8;
+  --electric-cyan-dim: rgba(129, 140, 248, 0.15);
+  --electric-cyan-glow: rgba(129, 140, 248, 0.4);
+
+  --alert-red: #f43f5e;
+  --alert-red-dim: rgba(244, 63, 94, 0.2);
+  --alert-red-glow: rgba(244, 63, 94, 0.5);
+
+  --warning-amber: #fbbf24;
+  --cyber-purple: #c084fc;
+
+  --text-primary: #38bdf8;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+
+  --border-cyan: rgba(129, 140, 248, 0.35);
+  --border-green: rgba(56, 189, 248, 0.35);
+  --border-red: rgba(244, 63, 94, 0.4);
+}
+
+/* 4. MILITARY COMMAND THEME */
+[data-theme='MILITARY'] {
+  --bg-primary: #080d09;
+  --bg-secondary: #121c14;
+  --bg-tertiary: #1a2a1d;
+  --bg-panel: rgba(18, 28, 20, 0.88);
+  --bg-panel-solid: #121c14;
+
+  --neon-green: #f59e0b;
+  --neon-green-dim: rgba(245, 158, 11, 0.2);
+  --neon-green-glow: rgba(245, 158, 11, 0.4);
+
+  --electric-cyan: #10b981;
+  --electric-cyan-dim: rgba(16, 185, 129, 0.15);
+  --electric-cyan-glow: rgba(16, 185, 129, 0.4);
+
+  --alert-red: #ef4444;
+  --alert-red-dim: rgba(239, 68, 68, 0.2);
+  --alert-red-glow: rgba(239, 68, 68, 0.5);
+
+  --warning-amber: #eab308;
+  --cyber-purple: #84cc16;
+
+  --text-primary: #f59e0b;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
+
+  --border-cyan: rgba(245, 158, 11, 0.35);
+  --border-green: rgba(16, 185, 129, 0.35);
+  --border-red: rgba(239, 68, 68, 0.4);
+}
+
+/* 5. HOLLYWOOD HACKER THEME */
+[data-theme='HOLLYWOOD'] {
+  --bg-primary: #080104;
+  --bg-secondary: #17040b;
+  --bg-tertiary: #260713;
+  --bg-panel: rgba(23, 4, 11, 0.88);
+  --bg-panel-solid: #17040b;
+
+  --neon-green: #ff0055;
+  --neon-green-dim: rgba(255, 0, 85, 0.2);
+  --neon-green-glow: rgba(255, 0, 85, 0.4);
+
+  --electric-cyan: #00f0ff;
+  --electric-cyan-dim: rgba(0, 240, 255, 0.15);
+  --electric-cyan-glow: rgba(0, 240, 255, 0.4);
+
+  --alert-red: #ff0033;
+  --alert-red-dim: rgba(255, 0, 51, 0.2);
+  --alert-red-glow: rgba(255, 0, 51, 0.5);
+
+  --warning-amber: #ffaa00;
+  --cyber-purple: #d946ef;
+
+  --text-primary: #ff0055;
+  --text-secondary: #e280a3;
+  --text-muted: #732a44;
+
+  --border-cyan: rgba(255, 0, 85, 0.35);
+  --border-green: rgba(0, 240, 255, 0.35);
+  --border-red: rgba(255, 0, 51, 0.4);
+}
+
+/* 6. RETRO CRT MONOCHROME THEME */
+[data-theme='RETRO_CRT'] {
+  --bg-primary: #0b0700;
+  --bg-secondary: #1c1200;
+  --bg-tertiary: #2b1c00;
+  --bg-panel: rgba(28, 18, 0, 0.88);
+  --bg-panel-solid: #1c1200;
+
+  --neon-green: #ffb700;
+  --neon-green-dim: rgba(255, 183, 0, 0.2);
+  --neon-green-glow: rgba(255, 183, 0, 0.4);
+
+  --electric-cyan: #ffaa00;
+  --electric-cyan-dim: rgba(255, 170, 0, 0.15);
+  --electric-cyan-glow: rgba(255, 170, 0, 0.4);
+
+  --alert-red: #ff3300;
+  --alert-red-dim: rgba(255, 51, 0, 0.2);
+  --alert-red-glow: rgba(255, 51, 0, 0.5);
+
+  --warning-amber: #ffd000;
+  --cyber-purple: #ff8800;
+
+  --text-primary: #ffb700;
+  --text-secondary: #cfa03c;
+  --text-muted: #6e5218;
+
+  --border-cyan: rgba(255, 183, 0, 0.35);
+  --border-green: rgba(255, 183, 0, 0.35);
+  --border-red: rgba(255, 51, 0, 0.4);
+}
